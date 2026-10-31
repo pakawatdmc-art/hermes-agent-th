@@ -58,11 +58,14 @@ HELP
         export HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop"
         export HERMES_DESKTOP_ISOLATED_BACKEND=1
         export HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION=1
+        # PM owns this checkout's runtime; never discover another installed copy.
+        export HERMES_DESKTOP_HERMES="$repo_dir/.hermes/bin/hermes"
         exec ./scripts/run-in-hermes-env python ./hermes desktop --source --skip-build \
             --hermes-root "$repo_dir" --cwd "$repo_dir" "$@"
         ;;
     desktop-build)
         shift
+        ./scripts/run-in-hermes-env node scripts/build/electron-runtime.mjs --source "$repo_dir"
         exec ./scripts/run-in-hermes-env npm run build --workspace apps/desktop "$@"
         ;;
     doctor)
