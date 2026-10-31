@@ -90,17 +90,28 @@ function stringWidthJavaScript(str: string): number {
       continue
     }
 
-    // Calculate width for non-emoji graphemes
-    // For grapheme clusters (like Devanagari conjuncts with virama+ZWJ), only count
-    // the first non-zero-width character's width since the cluster renders as one glyph
-    for (const char of grapheme) {
-      const codePoint = char.codePointAt(0)!
+    width += nonEmojiGraphemeWidth(grapheme)
+  }
 
-      if (!isZeroWidth(codePoint)) {
+  return width
+}
+
+function nonEmojiGraphemeWidth(grapheme: string): number {
+  // Conjuncts (like Devanagari with virama+ZWJ) use the first base's width.
+  // Thai/Lao SARA AM remains a spacing vowel inside a grapheme; it occupies
+  // its own cell even when an emoji elsewhere enabled the segmented path.
+  let countedBase = false
+  let width = 0
+
+  for (const char of grapheme) {
+    const codePoint = char.codePointAt(0)!
+
+    if (!isZeroWidth(codePoint)) {
+      if (!countedBase || codePoint === 0x0e33 || codePoint === 0x0eb3) {
         width += eastAsianWidth(codePoint, { ambiguousAsWide: false })
-
-        break
       }
+
+      countedBase = true
     }
   }
 

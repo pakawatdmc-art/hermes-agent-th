@@ -48096,6 +48096,42 @@
       }
     },
     {
+      "name": "i18n.catalog",
+      "summary": "Locale catalog for the authenticated profile owner and requested surface.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/I18nCatalogParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/I18nCatalogResult"
+        }
+      }
+    },
+    {
+      "name": "i18n.languages",
+      "summary": "Available languages for the authenticated profile owner.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/ProfileParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/I18nLanguagesResult"
+        }
+      }
+    },
+    {
       "name": "image.attach_bytes",
       "summary": "",
       "params": [

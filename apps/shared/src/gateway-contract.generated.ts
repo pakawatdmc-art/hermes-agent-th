@@ -6847,6 +6847,10 @@ export interface CanonicalRpcMethods {
   /** Discard one indeterminate room task after explicit user confirmation. */
   'groups.discard': { params: GroupsDiscardParams; result: GroupsDiscardResult }
   'groups.retry': { params: CanonicalRoomAttemptParams; result: GroupsRetryResult }
+  /** Locale catalog for the authenticated profile owner and requested surface. */
+  'i18n.catalog': { params: I18nCatalogParams; result: I18nCatalogResult }
+  /** Available languages for the authenticated profile owner. */
+  'i18n.languages': { params: ProfileParams; result: I18nLanguagesResult }
   'image.attach_bytes': { params: ImageAttachBytesParams; result: CanonicalAttachedImageResult }
   /** Native-owner only: admit the dispatcher's current claim on a kanban task. */
   'kanban.run': { params: KanbanRunParams; result: KanbanRunResult }
@@ -6917,6 +6921,8 @@ export const CANONICAL_RPC_METHODS = [
   'groups.create',
   'groups.discard',
   'groups.retry',
+  'i18n.catalog',
+  'i18n.languages',
   'image.attach_bytes',
   'kanban.run',
   'profiles.list',

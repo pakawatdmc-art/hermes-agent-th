@@ -1,6 +1,8 @@
 import { DEFAULT_REASONING_EFFORT, REASONING_EFFORT_VALUES } from '@hermes/shared'
 import { describe, expect, it } from 'vitest'
 
+import { th } from '@/i18n/th'
+
 import {
   isThinkingEnabled,
   reasoningEffortClamp,
@@ -9,6 +11,16 @@ import {
 } from './reasoning-effort'
 
 describe('reasoning-effort', () => {
+  it('uses translated labels while retaining the gateway clamp and unknown-value contract', () => {
+    const labels = { ...th.shell.modelOptions, none: th.common.off }
+
+    expect(reasoningEffortLabel('medium', undefined, labels)).toBe('ปานกลาง')
+    expect(reasoningEffortLabel('ultra', 'max', labels)).toBe(`${labels.ultra}→${labels.max}`)
+    expect(reasoningEffortLabel('none', undefined, labels)).toBe('ปิด')
+    expect(reasoningEffortLabel('Custom', undefined, labels)).toBe('Custom')
+    expect(reasoningEffortLabel('medium')).toBe('Med')
+  })
+
   it('labels every level it claims to support', () => {
     for (const effort of REASONING_EFFORT_VALUES) {
       expect(reasoningEffortLabel(effort)).not.toBe('')

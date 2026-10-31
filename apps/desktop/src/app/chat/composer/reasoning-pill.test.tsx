@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import type { ChatBarState } from '@/app/chat/composer/types'
 import { PRIMARY_SESSION_VIEW, type SessionView, SessionViewProvider } from '@/app/chat/session-view'
 import { applySessionInfoStatePatch, sessionInfoStatePatch } from '@/app/session/hooks/use-message-stream/utils'
+import { I18nProvider, setRuntimeI18nLocale } from '@/i18n'
 import { createClientSessionState } from '@/lib/chat-runtime'
 import {
   $activeSessionId,
@@ -45,6 +46,7 @@ const tileView = (reasoningEffort: string, reasoningEffortWire = ''): SessionVie
 
 afterEach(() => {
   cleanup()
+  setRuntimeI18nLocale('en')
   $defaultReasoningEffort.set('')
   $activeSessionId.set(null)
   $selectedStoredSessionId.set(null)
@@ -52,6 +54,19 @@ afterEach(() => {
 })
 
 describe('ReasoningPill', () => {
+  it('shows the Thai effort and level from the existing catalog', () => {
+    render(
+      <I18nProvider configClient={null} initialLocale="th">
+        <SessionViewProvider value={tileView('medium')}>
+          <ReasoningPill disabled={false} model={modelState()} />
+        </SessionViewProvider>
+      </I18nProvider>
+    )
+
+    expect(screen.getByTestId('reasoning-pill').textContent).toBe('ปานกลาง')
+    expect(screen.getByTestId('reasoning-pill').getAttribute('aria-label')).toBe('ระดับการคิด: ปานกลาง')
+  })
+
   it('shows a clamped pick as what the route sends, never as a distinct level (#61634)', () => {
     // The gateway says this route clamps `ultra` to `max`: compact "Ultra→Max".
     const { unmount } = render(

@@ -14,6 +14,7 @@ import { contributedKeybindHandler, keybindAction, KEYBINDS_AREA } from '@/lib/k
 import { bindingsFor, resetBinding, setBinding } from '@/store/keybinds'
 
 import { KANBAN_LOCALES } from '../plugins/kanban/i18n'
+import { ModelOverrideField, overridePatch, type TaskModelOverride } from '../plugins/kanban/model-override'
 import plugin from '../plugins/kanban/plugin'
 
 // Keep the real registration and UI path without opening a board socket.
@@ -79,7 +80,7 @@ it('relabels Kanban after delayed config load and locale switches without replac
     await config
   })
 
-  for (const locale of ['zh', 'ja', 'zh-hant', 'en'] as const) {
+  for (const locale of ['zh', 'ja', 'zh-hant', 'th', 'en'] as const) {
     if (locale !== 'zh') {
       await act(() => i18n.setLocale(locale))
     }
@@ -105,4 +106,22 @@ it('relabels Kanban after delayed config load and locale switches without replac
   await act(() => plugin.register(createPluginContext('kanban', dispose => disposers.push(dispose))))
   expect(screen.getByText(KANBAN_LOCALES.zh!.nav as string)).toBeTruthy()
   expect(bindingsFor('kanban.newTask')).toEqual(['mod+alt+k'])
+})
+
+it.each([
+  ['th', 'ปานกลาง'],
+  ['en', 'Med']
+] as const)('renders %s effort labels without changing the stored override', (locale, label) => {
+  const value: TaskModelOverride = { effort: 'medium', model: 'gpt-6', provider: 'openai' }
+  const onChange = vi.fn()
+
+  render(
+    <I18nProvider configClient={null} initialLocale={locale}>
+      <ModelOverrideField onChange={onChange} value={value} />
+    </I18nProvider>
+  )
+
+  expect(screen.getByText(`openai: gpt-6 · ${label}`)).toBeTruthy()
+  expect(onChange).not.toHaveBeenCalled()
+  expect(overridePatch(value).reasoning_effort).toBe('medium')
 })

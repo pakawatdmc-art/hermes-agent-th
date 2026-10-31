@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from .base import Params, Result, WireEnum
 from .common import ProfileParams
-from .registry import method
+from .registry import canonical_method, method
 
 # ── shapes ────────────────────────────────────────────────────────────────────────────────────
 
@@ -53,3 +53,10 @@ method("i18n.languages", params=ProfileParams, result=I18nLanguagesResult,
        doc="Every language some layer supplies (bundled ∪ user overlay ∪ plugin packs), en first.")
 method("i18n.catalog", params=I18nCatalogParams, result=I18nCatalogResult,
        doc="Pack + overlay messages for one language and surface; the renderer merges them over its bundled catalog.")
+
+# Native clients use the same payloads. The canonical owner authorizes session:read
+# and resolves profile-owned overlays before returning either projection.
+canonical_method("i18n.languages", params=ProfileParams, result=I18nLanguagesResult,
+                 doc="Available languages for the authenticated profile owner.")
+canonical_method("i18n.catalog", params=I18nCatalogParams, result=I18nCatalogResult,
+                 doc="Locale catalog for the authenticated profile owner and requested surface.")

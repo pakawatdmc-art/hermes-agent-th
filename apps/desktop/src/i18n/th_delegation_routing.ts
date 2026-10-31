@@ -1,0 +1,93 @@
+import type { DelegationRoutingTranslations } from './types_delegation_routing'
+
+export const thDelegationRouting: DelegationRoutingTranslations = {
+  title: 'การกำหนดเส้นทาง',
+  settingsTitle: 'ค่าเริ่มต้นของเอเจนต์ย่อย',
+  intro: 'วิธีเลือกโมเดลให้เอเจนต์ย่อยแต่ละตัว',
+  modes: {
+    default: { label: 'ค่าเริ่มต้น', description: 'เอเจนต์ย่อยทุกตัวใช้โมเดลสำหรับเอเจนต์ย่อยที่ตั้งไว้ด้านล่าง' },
+    model_map: {
+      label: 'เส้นทางโมเดล',
+      description: 'ตั้งชื่อให้โมเดลที่ต้องการใช้ แล้วเอเจนต์จะเลือกให้เอเจนต์ย่อยแต่ละตัว'
+    },
+    profile_routes: {
+      label: 'เส้นทางโปรไฟล์',
+      description: 'เอเจนต์ย่อยทำงานภายใต้โปรไฟล์ที่คุณเลือก โดยใช้โมเดล ทักษะ และคีย์ของโปรไฟล์นั้น'
+    }
+  },
+  inUse: 'กำลังใช้งาน',
+  plugin: 'ปลั๊กอิน',
+  pluginMissing: 'เส้นทางโมเดลและเส้นทางโปรไฟล์เป็นความสามารถของปลั๊กอิน Advanced Delegation',
+  pluginDisabled: 'ติดตั้ง Advanced Delegation แล้ว แต่ยังปิดใช้งานสำหรับโปรไฟล์นี้',
+  pluginNotLoaded: 'เปิด Advanced Delegation แล้ว แต่ Hermes ยังไม่ได้โหลด เริ่ม Hermes ใหม่เพื่อให้พร้อมใช้งาน',
+  installPlugin: 'ติดตั้งปลั๊กอิน',
+  installUnavailable: 'Advanced Delegation ยังไม่อยู่ในแค็ตตาล็อกปลั๊กอิน ให้ติดตั้งผ่าน ความสามารถ › ปลั๊กอิน',
+  enablePlugin: 'เปิดใช้งาน',
+  enableFailed: 'เปิดใช้งาน Advanced Delegation ไม่สำเร็จ',
+  modeFailed: 'เปลี่ยนเส้นทางเอเจนต์ย่อยไม่สำเร็จ',
+  loadFailed: 'โหลดการกำหนดเส้นทางเอเจนต์ย่อยไม่สำเร็จ',
+  blockedPill: 'ไม่ทำงาน',
+  blockedDetail:
+    'บันทึกให้ใช้โหมดนี้แล้ว Hermes จึงปฏิเสธการเริ่มเอเจนต์ย่อยทุกตัว แทนการเปลี่ยนไปใช้โหมดค่าเริ่มต้นเอง',
+  blockedMissing: 'เอเจนต์ย่อยจะไม่เริ่มทำงานจนกว่าจะติดตั้ง Advanced Delegation',
+  blockedDisabled: 'เอเจนต์ย่อยจะไม่เริ่มทำงานจนกว่าจะเปิด Advanced Delegation สำหรับโปรไฟล์นี้',
+  blockedNotLoaded:
+    'เอเจนต์ย่อยจะไม่เริ่มทำงานจนกว่า Hermes จะโหลด Advanced Delegation เริ่ม Hermes ใหม่เพื่อให้พร้อมใช้งาน',
+  blockedUnavailable: label =>
+    `เอเจนต์ย่อยจะไม่เริ่มทำงานจนกว่า ${label} จะใช้งานที่นี่ได้ ขณะนี้ปลั๊กอินรายงานว่ายังใช้ไม่ได้`,
+  blockedUnregistered: name => `เอเจนต์ย่อยจะไม่เริ่มทำงานจนกว่าจะติดตั้งและเปิดปลั๊กอินที่รองรับ “${name}”`,
+  thirdPartyDescription: 'ความสามารถจากปลั๊กอิน ปรับค่าได้ในการตั้งค่าของปลั๊กอินนั้น',
+  modelRoutesTitle: 'เส้นทางโมเดล',
+  modelRoutesEmpty: 'ยังไม่มีเส้นทาง เอเจนต์ย่อยจะใช้โมเดลของเอเจนต์หลักจนกว่าคุณจะเพิ่มเส้นทาง',
+  addRoute: 'เพิ่มเส้นทาง',
+  editRoute: 'แก้ไข',
+  makeDefault: 'ตั้งเป็นค่าเริ่มต้น',
+  deleteRoute: 'ลบ',
+  defaultBadge: 'ค่าเริ่มต้น',
+  routeActions: name => `การดำเนินการสำหรับ ${name}`,
+  deleteConfirmTitle: name => `ลบเส้นทาง “${name}” หรือไม่?`,
+  deleteConfirmBody: 'เอเจนต์ย่อยจะเลือกเส้นทางนี้ไม่ได้อีก',
+  deleteConfirmNextDefault: name => `เส้นทางที่ลบเป็นค่าเริ่มต้น ดังนั้น “${name}” จะเป็นค่าเริ่มต้นแทน`,
+  deleteConfirmAction: 'ลบเส้นทาง',
+  saveFailed: 'บันทึกเส้นทางไม่สำเร็จ',
+  baseUrlRoute: url => `ปลายทาง ${url}`,
+  dialogNew: 'เส้นทางโมเดลใหม่',
+  dialogEdit: 'แก้ไขเส้นทางโมเดล',
+  dialogDesc: 'เอเจนต์จะอ่านชื่อและคำอธิบายเพื่อเลือกเส้นทางให้เอเจนต์ย่อย',
+  nameLabel: 'ชื่อ',
+  namePlaceholder: 'เช่น fast',
+  nameHint: 'ใช้ชื่อสั้น ๆ ไม่มีช่องว่าง เอเจนต์จะเลือกเส้นทางด้วยชื่อนี้',
+  descriptionLabel: 'ควรใช้เมื่อใด',
+  descriptionPlaceholder: 'เช่น ประหยัดและเร็ว: ค้นข้อมูล สรุป หรือแก้ไขง่าย ๆ',
+  descriptionHint: 'คำอธิบายหนึ่งบรรทัดให้เอเจนต์อ่านก่อนเลือก',
+  providerLabel: 'ผู้ให้บริการโมเดล',
+  providerPlaceholder: 'เลือกผู้ให้บริการโมเดล',
+  modelLabel: 'โมเดล',
+  effortLabel: 'ระดับการคิด',
+  effortInherit: 'ค่าเริ่มต้นของเอเจนต์ย่อย',
+  tierLabel: 'ความเร็ว',
+  tierNormal: 'ปกติ',
+  tierFast: 'เร็ว',
+  tierUltrafast: 'เร็วมาก',
+  tierHint: 'ใช้ได้เฉพาะโมเดลที่รองรับ',
+  optional: 'ไม่บังคับ',
+  errors: { required: 'ต้องระบุ', spaces: 'ห้ามมีช่องว่าง', duplicate: 'มีเส้นทางอื่นใช้ชื่อนี้แล้ว' },
+  saveRoute: 'บันทึกเส้นทาง',
+  createRoute: 'เพิ่มเส้นทาง',
+  profileRoutesTitle: 'โปรไฟล์ที่อนุญาตให้เอเจนต์ย่อยใช้',
+  profileRoutesHint: 'แต่ละโปรไฟล์ที่เลือกจะใช้โมเดล ทักษะ บุคลิก และคีย์ของตนเอง',
+  profileDescriptionPlaceholder: 'ควรใช้เมื่อใด (ไม่บังคับ)',
+  profileDefault: 'ค่าเริ่มต้น',
+  profileEmpty: 'ยังไม่มีโปรไฟล์อื่น สร้างได้จากแถบโปรไฟล์',
+  profileMissing: name => `${name} (โปรไฟล์ไม่มีอยู่แล้ว)`,
+  inactiveTitle: 'ไม่ใช้ค่านี้ในโหมดปัจจุบัน',
+  inactiveModelMap: route => `เส้นทางโมเดลจะกำหนดโมเดลของเอเจนต์ย่อยแต่ละตัว หากไม่เลือกเส้นทาง จะใช้ “${route}”`,
+  inactiveProfiles: profile =>
+    `เส้นทางโปรไฟล์จะกำหนดโปรไฟล์ของเอเจนต์ย่อยแต่ละตัว หากไม่เลือกโปรไฟล์ จะทำงานภายใต้ “${profile}”`,
+  inactiveModelMapNoDefault:
+    'เส้นทางโมเดลจะกำหนดโมเดลของเอเจนต์ย่อยแต่ละตัว หากไม่เลือกเส้นทาง จะใช้โมเดลของเอเจนต์หลัก',
+  inactiveProfilesNoDefault:
+    'เส้นทางโปรไฟล์จะกำหนดโปรไฟล์ของเอเจนต์ย่อยแต่ละตัว หากไม่เลือกโปรไฟล์ จะใช้โมเดลของเอเจนต์หลัก',
+  inactivePlugin: label => `${label} เป็นผู้กำหนดโมเดลของเอเจนต์ย่อยแต่ละตัว จึงไม่ใช้การตั้งค่านี้`,
+  useDefault: 'เปลี่ยนเป็นโหมดค่าเริ่มต้น'
+}

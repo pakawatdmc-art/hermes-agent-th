@@ -1,0 +1,35 @@
+import type { CatalogInstallTranslations } from './types_catalog_install'
+export const thCatalogInstall: CatalogInstallTranslations = {
+  preparing: 'กำลังเตรียมการติดตั้ง...',
+  install: 'ติดตั้ง',
+  advanced: 'ขั้นสูง',
+  skip: 'ข้าม',
+  installing: 'กำลังติดตั้ง…',
+  installed: 'ติดตั้งแล้ว',
+  notInstalled: 'ไม่ได้ติดตั้ง',
+  failed: 'ไม่สำเร็จ',
+  showNames: 'แสดงชื่อ',
+  hideNames: 'ซ่อนชื่อ',
+  skill: name => `ทักษะ ${name}`,
+  kind: { plugin: 'ปลั๊กอิน', skill: 'ทักษะ' },
+  tier: { official: 'เป็นทางการ', verified: 'ตรวจสอบแล้ว', community: 'ชุมชน' },
+  targetProfile: profile => `ติดตั้งในโปรไฟล์ ${profile} ของคุณ`,
+  sendFailed: 'ไม่สามารถส่งคำตอบของคุณได้ ลองอีกครั้ง',
+  commitLabel: 'คอมมิต',
+  subdirLabel: 'โฟลเดอร์',
+  securityHeading: 'ความปลอดภัย',
+  scan: { passed: 'สแกนผ่าน', warnings: 'สแกนพบคำเตือน', failed: 'การสแกนล้มเหลว' },
+  requirementsLabel: 'ต้องใช้',
+  requiresHermes: range => `Hermes ${range}`,
+  envVar: name => `ตัวแปรสภาพแวดล้อม ${name}`,
+  credentialsHeading: 'ข้อมูลยืนยันตัวตน',
+  phase: {
+    downloading: 'กำลังดาวน์โหลด...',
+    python_packages: 'กำลังติดตั้งแพ็กเกจ Python…',
+    loading_tools: 'กำลังโหลดเครื่องมือของรายการนี้…'
+  },
+  serverNotConnected: (server, reason) => `เซิร์ฟเวอร์ MCP ${server} ไม่ได้เชื่อมต่อ${reason ? `: ${reason}` : ''}`,
+  notEnabled: 'ติดตั้งแล้วแต่ไม่ได้เปิด',
+  missingEnv: names => `กำหนดค่า ${names} เพื่อตั้งค่าให้เสร็จ`,
+  alreadyInstalled: 'ติดตั้งอยู่แล้ว จึงคงไว้ตามเดิม'
+}

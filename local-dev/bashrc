@@ -1,0 +1,2 @@
+# Loaded only by ./dev shell; the caller has selected this checkout and data home.
+source ./activate || return

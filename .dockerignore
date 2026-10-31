@@ -147,3 +147,6 @@ plans/
 /*.png.bak
 *.tar.gz
 *.tgz
+# Local development state, credentials, and tool downloads.
+.hermes-dev/
+.local-tools/

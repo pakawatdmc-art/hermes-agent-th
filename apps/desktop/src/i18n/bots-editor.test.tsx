@@ -52,21 +52,24 @@ afterEach(() => {
   cleanup()
   dispose?.()
 })
-it('keeps a new bot draft when the language changes and localizes advanced controls', async () => {
-  mount(<CreateAgentDialog onClose={() => undefined} open roster={[{ connectionId: 'local', name: 'default' }]} />)
-  const zh = translateBotsIn('zh')
-  expect(screen.getByText(zh('editor.newDescription'))).toBeTruthy()
-  fireEvent.change(screen.getByPlaceholderText('inbox-triage'), { target: { value: 'draft-test' } })
-  fireEvent.click(screen.getByRole('button', { name: zh('bot.advanced') }))
-  expect(screen.getByText(zh('editor.cloneFrom'))).toBeTruthy()
-  expect(screen.getByText(zh('editor.shareKeysHint'))).toBeTruthy()
-  await act(() => i18n.setLocale('ja'))
-  const ja = translateBotsIn('ja')
-  expect(screen.getByText(ja('editor.cloneFrom'))).toBeTruthy()
-  expect(screen.getByDisplayValue('draft-test')).toBeTruthy()
-  expect(screen.getByRole('button', { name: ja('editor.createBot') })).toBeTruthy()
-  expect(mocks.request.mock.calls.some(([method]) => method === 'profiles.create')).toBe(false)
-})
+it.each(['ja', 'th'] as const)(
+  'keeps a new bot draft when switching to %s and localizes advanced controls',
+  async locale => {
+    mount(<CreateAgentDialog onClose={() => undefined} open roster={[{ connectionId: 'local', name: 'default' }]} />)
+    const zh = translateBotsIn('zh')
+    expect(screen.getByText(zh('editor.newDescription'))).toBeTruthy()
+    fireEvent.change(screen.getByPlaceholderText('inbox-triage'), { target: { value: 'draft-test' } })
+    fireEvent.click(screen.getByRole('button', { name: zh('bot.advanced') }))
+    expect(screen.getByText(zh('editor.cloneFrom'))).toBeTruthy()
+    expect(screen.getByText(zh('editor.shareKeysHint'))).toBeTruthy()
+    await act(() => i18n.setLocale(locale))
+    const translated = translateBotsIn(locale)
+    expect(screen.getByText(translated('editor.cloneFrom'))).toBeTruthy()
+    expect(screen.getByDisplayValue('draft-test')).toBeTruthy()
+    expect(screen.getByRole('button', { name: translated('editor.createBot') })).toBeTruthy()
+    expect(mocks.request.mock.calls.some(([method]) => method === 'profiles.create')).toBe(false)
+  }
+)
 it('localizes Edit Profile and image controls without losing user content', async () => {
   mount(
     <EditProfileDialog

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Workspace-local entry point; Hermes PM owns the runtime and dependencies.
+set -e
+
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$repo_dir"
+umask 077
+export HERMES_HOME="$repo_dir/.hermes-dev"
+export HERMES_RUNTIME_DIR="$HERMES_HOME/tools"
+export UV_PYTHON_INSTALL_DIR="$HERMES_HOME/bootstrap-python"
+# The upstream archive guard scans the checkout; package caches contain .tar.gz files.
+export UV_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hermes-dev/uv"
+export PATH="$repo_dir/.local-tools/bin:$PATH"
+mkdir -p "$HERMES_HOME"
+# PM's source-backend probe uses its home-scoped cache instead of UV_CACHE_DIR.
+# Keep both caches outside the tree checked by the upstream archive guard.
+pm_cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/hermes-dev/pm-uv"
+mkdir -p "$pm_cache_dir" "$HERMES_HOME/cache"
+if [[ ! -e "$HERMES_HOME/cache/uv" && ! -L "$HERMES_HOME/cache/uv" ]]; then
+    ln -s "$pm_cache_dir" "$HERMES_HOME/cache/uv"
+fi
+
+case "${1:-help}" in
+    help|--help|-h)
+        cat <<'HELP'
+Usage: ./dev COMMAND [ARGS...]
+  setup          Prepare/update the pinned Python, tools, and test environment
+  shell          Open an activated Bash shell (exit to leave)
+  hermes ...     Run this checkout's Hermes CLI
+  terminal       Open the Thai terminal interface
+  desktop        Open the built Thai desktop app
+  desktop-build  Build the desktop app from this checkout
+  doctor         Check Hermes configuration and runtime
+  check ...      Run the upstream blocking lint checks
+  test ...       Run the canonical upstream test runner (2 workers by default)
+  COMMAND ...    Run any command in the PM environment, e.g. python or npm
+
+Private configuration and credentials live in .hermes-dev/ (Git-ignored).
+HELP
+        ;;
+    setup)
+        shift
+        exec bash ./setup-hermes.sh --runtime-only "$@"
+        ;;
+    shell)
+        exec bash --rcfile "$repo_dir/local-dev/bashrc" -i
+        ;;
+    hermes)
+        shift
+        exec ./scripts/run-in-hermes-env python ./hermes "$@"
+        ;;
+    terminal)
+        shift
+        exec ./scripts/run-in-hermes-env python ./hermes chat --tui "$@"
+        ;;
+    desktop)
+        shift
+        export HERMES_DESKTOP_USER_DATA_DIR="$HERMES_HOME/desktop"
+        export HERMES_DESKTOP_ISOLATED_BACKEND=1
+        export HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION=1
+        exec ./scripts/run-in-hermes-env python ./hermes desktop --source --skip-build \
+            --hermes-root "$repo_dir" --cwd "$repo_dir" "$@"
+        ;;
+    desktop-build)
+        shift
+        exec ./scripts/run-in-hermes-env npm run build --workspace apps/desktop "$@"
+        ;;
+    doctor)
+        shift
+        exec ./scripts/run-in-hermes-env python ./hermes doctor "$@"
+        ;;
+    check)
+        shift
+        # Lint tooling belongs to PM's test interpreter, not the application runtime.
+        exec ./scripts/run-in-hermes-env bash -c \
+            'unset PYTHONPATH; exec "$__HERMES_TEST_PYTHON" ./scripts/check "$@"' \
+            hermes-check "$@"
+        ;;
+    test)
+        shift
+        exec ./scripts/run_tests.sh -j 2 "$@"
+        ;;
+    *)
+        exec ./scripts/run-in-hermes-env "$@"
+        ;;
+esac

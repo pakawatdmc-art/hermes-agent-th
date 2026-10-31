@@ -68,6 +68,12 @@ export const LOCALE_OPTIONS = [
     name: LOCALE_ENDONYMS.es,
     englishName: 'Spanish',
     configValue: 'es'
+  },
+  {
+    id: 'th',
+    name: LOCALE_ENDONYMS.th,
+    englishName: 'Thai',
+    configValue: 'th'
   }
 ] as const satisfies readonly { configValue: string; englishName: string; id: BundledLocale; name: string }[]
 
@@ -134,6 +140,12 @@ const LOCALE_ALIASES: Record<string, BundledLocale> = {
   en: 'en',
   'en-us': 'en',
   en_us: 'en',
+  th: 'th',
+  'th-th': 'th',
+  th_th: 'th',
+  thai: 'th',
+  ไทย: 'th',
+  ภาษาไทย: 'th',
   zh: 'zh',
   'zh-cn': 'zh',
   zh_cn: 'zh',

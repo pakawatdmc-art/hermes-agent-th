@@ -1,9 +1,13 @@
-import { DEFAULT_REASONING_EFFORT, isReasoningEffort, type ReasoningEffort } from '@hermes/shared'
+import {
+  DEFAULT_REASONING_EFFORT,
+  isReasoningEffort,
+  type ReasoningEffort,
+  type ReasoningEffortValue
+} from '@hermes/shared'
 
 import { normalize } from '@/lib/text'
 
-/** Compact labels for chrome where space is tight (pill, picker rows). Menus
- *  and settings use the translated `shell.modelOptions` strings instead. */
+/** English abbreviations for chrome; other locales reuse their model-option labels. */
 const SHORT_LABELS: Record<string, string> = {
   none: 'Off',
   minimal: 'Min',
@@ -40,15 +44,20 @@ export function reasoningEffortClamp(
 
 /** Compact label; a clamped pick shows both ends ("Ultra→Max") so the pill
  *  never presents a Hermes step as a wire level the route does not have. */
-export function reasoningEffortLabel(effort: string, wire?: string): string {
+export function reasoningEffortLabel(
+  effort: string,
+  wire?: string,
+  labels: Partial<Record<ReasoningEffortValue, string>> = SHORT_LABELS
+): string {
   const key = normalize(effort)
   const clamp = reasoningEffortClamp(effort, wire)
+  const label = (level: string) => labels[level as ReasoningEffortValue] ?? SHORT_LABELS[level] ?? level
 
   if (clamp) {
-    return `${SHORT_LABELS[clamp.effort]}→${SHORT_LABELS[clamp.wire]}`
+    return `${label(clamp.effort)}→${label(clamp.wire)}`
   }
 
-  return key ? (SHORT_LABELS[key] ?? effort) : ''
+  return key ? (key === 'none' || isReasoningEffort(key) ? label(key) : effort) : ''
 }
 
 /** Thinking is on unless a level explicitly says otherwise; an empty value

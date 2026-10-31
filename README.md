@@ -1,3 +1,6 @@
+> **Hermes ภาษาไทย — community edition:** อ่าน [คู่มือติดตั้งภาษาไทย](README.th.md) เพื่อใช้ Desktop และ Terminal จาก fork นี้ พร้อมรายละเอียดที่ [THAI_LOCALIZATION.md](THAI_LOCALIZATION.md).
+> The English installation instructions below describe upstream Hermes; follow [README.th.md](README.th.md) to install this Thai community fork.
+
 <p align="center">
   <img src="assets/banner.png" alt="Hermes Agent" width="100%">
 </p>

@@ -33,6 +33,7 @@ BUNDLED_LANGUAGE_INFO: dict[str, tuple[str, bool]] = {
     "ko": ("한국어", False),
     "pt": ("Português", False),
     "ru": ("Русский", False),
+    "th": ("ไทย", False),
     "tr": ("Türkçe", False),
     "uk": ("Українська", False),
     "zh": ("简体中文", False),

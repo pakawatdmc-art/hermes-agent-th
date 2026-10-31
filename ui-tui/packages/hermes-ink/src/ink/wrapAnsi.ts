@@ -1,13 +1,13 @@
 import wrapAnsiNpm from 'wrap-ansi'
 
-type WrapAnsiOptions = {
-  hard?: boolean
-  wordWrap?: boolean
-  trim?: boolean
-}
+import { type WrapAnsiOptions, wrapGraphemes } from './wrapGraphemes.js'
 
 const wrapAnsiBun = typeof Bun !== 'undefined' && typeof Bun.wrapAnsi === 'function' ? Bun.wrapAnsi : null
 
-const wrapAnsi: (input: string, columns: number, options?: WrapAnsiOptions) => string = wrapAnsiBun ?? wrapAnsiNpm
+const wrapNative = wrapAnsiBun ?? wrapAnsiNpm
+
+function wrapAnsi(input: string, columns: number, options?: WrapAnsiOptions): string {
+  return /[\u0e00-\u0eff]/.test(input) ? wrapGraphemes(input, columns, options) : wrapNative(input, columns, options)
+}
 
 export { wrapAnsi }
