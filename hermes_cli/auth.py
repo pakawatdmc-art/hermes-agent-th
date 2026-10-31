@@ -32,6 +32,7 @@ from urllib.parse import urlparse
 
 from hermes_constants import OPENROUTER_BASE_URL, hermes_home_key, secure_parent_dir
 from agent.credential_persistence import sanitize_borrowed_credential_payload
+from agent.i18n import t
 from utils import atomic_json_write, env_float, file_cache_version, is_truthy_value
 from hermes_cli.auth_zai_kimi import (
     KIMI_CODE_BASE_URL, ZAI_ENDPOINTS, _normalize_lmstudio_runtime_base_url, _resolve_kimi_base_url,
@@ -440,11 +441,9 @@ def primary_failure_wording(error: Exception) -> tuple[str, str]:
     return "auth failed", "Primary auth failed"
 
 
-# Entitlement failures: Nous gets a Portal-aware message; other providers a fixed generic one (or
-# the raw error when no generic text exists for the code).
 _GENERIC_ENTITLEMENT_MESSAGES = {
-    "subscription_required": "No active paid subscription found. Please purchase/activate a subscription, then retry.",
-    "insufficient_credits": "Subscription credits are exhausted. Top up/renew credits, then retry."}
+    "subscription_required": "cli.auth.subscription_required",
+    "insufficient_credits": "cli.auth.insufficient_credits"}
 _ENTITLEMENT_ERROR_CODES = frozenset(_GENERIC_ENTITLEMENT_MESSAGES) | {
     "subscription_expired", "no_usable_credits", "account_missing", "member_spend_cap_exceeded"}
 
@@ -458,15 +457,15 @@ def format_auth_error(error: Exception) -> str:
         # Profile-aware: a bare `hermes model` from a named profile re-signs the ROOT store (#114012).
         from hermes_constants import profile_cli_selector
 
-        return f"{error} Run `hermes {profile_cli_selector()}model` to re-authenticate."
+        return t("cli.auth.reauthenticate", detail=str(error), command=f"hermes {profile_cli_selector()}model")
     if error.code in _ENTITLEMENT_ERROR_CODES:
         if error.provider == "nous":
             return _format_nous_entitlement_auth_error(error)
         generic = _GENERIC_ENTITLEMENT_MESSAGES.get(error.code)
         if generic:
-            return generic
+            return t(generic)
     if error.code == "temporarily_unavailable":
-        return f"{error} Please retry in a few seconds."
+        return t("cli.auth.retry_unavailable", detail=str(error))
     return str(error)
 
 

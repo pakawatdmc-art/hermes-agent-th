@@ -2,6 +2,8 @@
 resolved through the module object so test patches on ``hermes_cli.setup.<name>`` take effect."""
 
 import logging
+
+from agent.i18n import t
 from tools import tool_backend_helpers
 from hermes_cli import nous_subscription
 
@@ -32,21 +34,17 @@ _BROWSER_MISSING_DEFAULT = "Chromium (run 'hermes pm install chromium'), or conf
 _WEB_MISSING = ("EXA_API_KEY, PARALLEL_API_KEY, FIRECRAWL_API_KEY/FIRECRAWL_API_URL, TAVILY_API_KEY, "
                 "PERPLEXITY_API_KEY, KEENABLE_API_KEY, or SEARXNG_URL")
 
-_DONE_BANNER = (
-    "┌─────────────────────────────────────────────────────────┐",
-    "│              ✓ Setup Complete!                          │",
-    "└─────────────────────────────────────────────────────────┘")
 # (command, description) rows; the description carries its own alignment padding.
 _EDIT_WIZARD_ROWS = (
-    ("hermes setup", "          Re-run the full wizard"), ("hermes setup model", "    Change model/provider"),
-    ("hermes setup terminal", " Change terminal backend"), ("hermes setup gateway", "  Configure messaging"),
-    ("hermes setup tools", "    Configure tool providers"))
+    ("hermes setup", "cli.setup.summary.rerun"), ("hermes setup model", "cli.setup.summary.change_model"),
+    ("hermes setup terminal", "cli.setup.summary.change_terminal"), ("hermes setup gateway", "cli.setup.summary.messaging"),
+    ("hermes setup tools", "cli.setup.summary.tool_providers"))
 _EDIT_CONFIG_ROWS = (
-    ("hermes config", "         View current settings"), ("hermes config edit", "    Open config in your editor"),
+    ("hermes config", "cli.setup.summary.view_config"), ("hermes config edit", "cli.setup.summary.edit_config"),
     ("hermes config set <key> <value>", ""))
 _READY_ROWS = (
-    ("hermes", "              Start chatting"), ("hermes gateway", "      Start messaging gateway"),
-    ("hermes doctor", "       Check for issues"))
+    ("hermes", "cli.setup.summary.chat"), ("hermes gateway", "cli.setup.summary.start_gateway"),
+    ("hermes doctor", "cli.setup.summary.doctor"))
 
 
 def _voice_provider_status(kind: str, provider: str, rows: dict, default: tuple) -> tuple:
@@ -59,8 +57,9 @@ def _voice_provider_status(kind: str, provider: str, rows: dict, default: tuple)
         return (f"{kind} ({row[0]})", True, None)
     label, module, hint = row
     if _setup._module_installed(module):
-        return (f"{kind} ({label}{' local' if kind == 'Text-to-Speech' else ''})", True, None)
-    return (f"{kind} ({label} — not installed)", False, hint)
+        local = t("cli.setup.summary.local_suffix") if kind == t("cli.setup.tts") else ""
+        return (f"{kind} ({label}{local})", True, None)
+    return (t("cli.setup.summary.not_installed", kind=kind, label=label), False, hint)
 
 
 def _first_available_plugin_provider(registry: str, skip: str | None = None):
@@ -93,7 +92,7 @@ def _vision_row(config, feats):
         ok = bool(get_available_vision_backends())
     except Exception:
         ok = False
-    return ("Vision (image analysis)", ok, None if ok else "run 'hermes setup' to configure")
+    return (t("cli.setup.summary.vision"), ok, None if ok else t("cli.setup.summary.run_setup"))
 
 
 def _managed_or_provider_row(feature, name: str, managed_label: str, missing_hint: str):
@@ -107,74 +106,74 @@ def _managed_or_provider_row(feature, name: str, managed_label: str, missing_hin
 
 def _web_row(config, feats):
     # Web tools (Exa, Parallel, Firecrawl, Tavily, or Keenable)
-    return _managed_or_provider_row(feats.web, "Web Search & Extract", "Nous subscription", _WEB_MISSING)
+    return _managed_or_provider_row(feats.web, t("cli.setup.summary.web"), t("cli.setup.summary.nous_subscription"), _WEB_MISSING)
 
 
 def _browser_row(config, feats):
     # Browser tools (local Chromium, Lightpanda, Browserbase, Browser Use, or Firecrawl)
     hint = _BROWSER_MISSING_HINTS.get(feats.browser.current_provider, _BROWSER_MISSING_DEFAULT)
-    return _managed_or_provider_row(feats.browser, "Browser Automation", "Nous Browser Use", hint)
+    return _managed_or_provider_row(feats.browser, t("cli.setup.summary.browser"), "Nous Browser Use", hint)
 
 
 def _image_gen_row(config, feats):
     # FAL (direct or via Nous), or any plugin-registered provider (OpenAI, etc.)
     if feats.image_gen.managed_by_nous:
-        return ("Image Generation (Nous subscription)", True, None)
+        return (t("cli.setup.summary.image_nous"), True, None)
     if feats.image_gen.available:
-        return ("Image Generation", True, None)
+        return (t("cli.setup.summary.image"), True, None)
     # Probe plugin-registered providers so OpenAI-only setups don't show as "missing FAL_KEY".
     backend = _first_available_plugin_provider("image_gen_registry", skip="fal")
     if backend:
-        return (f"Image Generation ({backend})", True, None)
-    return ("Image Generation", False, "FAL_KEY or OPENAI_API_KEY")
+        return (t("cli.setup.summary.image_backend", backend=backend), True, None)
+    return (t("cli.setup.summary.image"), False, "FAL_KEY or OPENAI_API_KEY")
 
 
 def _video_gen_row(config, feats):
     # Opt-in via `hermes tools` → Video Generation. Only show the row when a plugin reports
     # available so we don't badger users who don't care about video gen with a "missing" line.
     if feats.video_gen.managed_by_nous:
-        return ("Video Generation (FAL via Nous subscription)", True, None)
+        return (t("cli.setup.summary.video_nous"), True, None)
     backend = _first_available_plugin_provider("video_gen_registry")
-    return (f"Video Generation ({backend})", True, None) if backend else None
+    return (t("cli.setup.summary.video_backend", backend=backend), True, None) if backend else None
 
 
 def _tts_row(config, feats):
     # Configured provider, gated on its key (or local install)
     if feats.tts.managed_by_nous:
-        return ("Text-to-Speech (OpenAI via Nous subscription)", True, None)
+        return (t("cli.setup.summary.tts_nous"), True, None)
     provider = _setup.cfg_get(config, "tts", "provider", default="edge")
-    return _voice_provider_status("Text-to-Speech", provider, _TTS_SUMMARY_ROWS, _TTS_SUMMARY_DEFAULT)
+    return _voice_provider_status(t('cli.setup.tts'), provider, _TTS_SUMMARY_ROWS, _TTS_SUMMARY_DEFAULT)
 
 
 def _stt_row(config, feats):
     stt_feature = feats.features.get("stt")
     if stt_feature is not None and stt_feature.managed_by_nous:
-        return ("Speech-to-Text (OpenAI via Nous subscription)", True, None)
+        return (t("cli.setup.summary.stt_nous"), True, None)
     provider = _setup.cfg_get(config, "stt", "provider", default="local") or "local"
-    return _voice_provider_status("Speech-to-Text", provider, _STT_SUMMARY_ROWS, _STT_SUMMARY_DEFAULT)
+    return _voice_provider_status(t("cli.setup.stt"), provider, _STT_SUMMARY_ROWS, _STT_SUMMARY_DEFAULT)
 
 
 def _modal_row(config, feats):
     if feats.modal.managed_by_nous:
-        return ("Modal Execution (Nous subscription)", True, None)
+        return (t("cli.setup.summary.modal_nous"), True, None)
     if _setup.cfg_get(config, "terminal", "backend") == "modal":
         if feats.modal.direct_override:
-            return ("Modal Execution (direct Modal)", True, None)
-        return ("Modal Execution", False, "run 'hermes setup terminal'")
+            return (t("cli.setup.summary.modal_direct"), True, None)
+        return (t("cli.setup.summary.modal"), False, "hermes setup terminal")
     if tool_backend_helpers.managed_nous_tools_enabled() and feats.nous_auth_present:
-        return ("Modal Execution (optional via Nous subscription)", True, None)
+        return (t("cli.setup.summary.modal_optional"), True, None)
     return None
 
 
 def _skills_hub_row(config, feats):
     ok = bool(_setup.get_env_value("GITHUB_TOKEN"))
-    return ("Skills Hub (GitHub)", ok, None if ok else "GITHUB_TOKEN")
+    return (t("cli.setup.summary.skills_hub"), ok, None if ok else "GITHUB_TOKEN")
 
 
 def _always_on_rows(config, feats):
     # Terminal (system deps met), task planning (in-memory), skills (bundled + user-created).
-    return [("Terminal/Commands", True, None), ("Task Planning (todo)", True, None),
-            ("Skills (view, create, edit)", True, None)]
+    return [(t("cli.setup.summary.terminal"), True, None), (t("cli.setup.summary.planning"), True, None),
+            (t("cli.setup.summary.skills"), True, None)]
 
 
 _TOOL_ROW_BUILDERS = (
@@ -185,7 +184,7 @@ _TOOL_ROW_BUILDERS = (
 def _print_cmd_rows(rows):
     """Print (command, description) rows as '   <green cmd><desc>'."""
     for cmd, desc in rows:
-        print(f"   {_setup.color(cmd, _setup.Colors.GREEN)}{desc}")
+        print(f"   {_setup.color(cmd, _setup.Colors.GREEN)}{t(desc) if desc else ''}")
 
 
 def _print_section_header(title):
@@ -203,13 +202,13 @@ def _print_setup_summary(config: dict, hermes_home):
         resolve_provider()
     except Exception:
         print()
-        _setup.print_warning("No inference provider is configured — Hermes cannot chat yet.")
-        _setup._info("  Finish this one step with either of:",
-              "    hermes model            (pick any provider/model)",
-              "    hermes setup --portal   (Nous Portal OAuth, no API key)")
+        _setup.print_warning(t('cli.setup.no_provider'))
+        _setup._info(t('cli.setup.finish_provider'),
+              t('cli.setup.pick_model_hint'),
+              t('cli.setup.portal_hint'))
 
     print()
-    _setup.print_header("Tool Availability Summary")
+    _setup.print_header(t('cli.setup.tool_summary'))
 
     tool_status = []
     subscription_features = nous_subscription.get_nous_subscription_features(config)
@@ -218,38 +217,37 @@ def _print_setup_summary(config: dict, hermes_home):
         tool_status.extend(row if isinstance(row, list) else [] if row is None else [row])
 
     available_count = sum(1 for _, avail, _ in tool_status if avail)
-    _setup._info(f"{available_count}/{len(tool_status)} tool categories available:", None)
+    _setup._info(t("cli.setup.summary.available", count=available_count, total=len(tool_status)), None)
     for name, available, missing_var in tool_status:
         print(f"   {_setup.color('✓', _setup.Colors.GREEN)} {name}" if available else
               f"   {_setup.color('✗', _setup.Colors.RED)} {name} "
-              f"{_setup.color(f'(missing {missing_var})', _setup.Colors.DIM)}")
+              f"{_setup.color(t('cli.setup.summary.missing', item=missing_var), _setup.Colors.DIM)}")
     print()
 
     if available_count < len(tool_status):
-        _setup.print_warning("Some tools are disabled. Run 'hermes setup tools' to configure them,")
-        _setup.print_warning(f"or edit {_dhh()}/.env directly to add the missing API keys.")
+        _setup.print_warning(t('cli.setup.tools_disabled'))
+        _setup.print_warning(t("cli.setup.summary.add_keys", path=f"{_dhh()}/.env"))
         print()
 
     print()
-    for line in _DONE_BANNER:
-        print(_setup.color(line, _setup.Colors.GREEN))
+    _setup.print_success(t("cli.setup.done"))
     print()
-    print(_setup.color(f"📁 All your files are in {_dhh()}/:", _setup.Colors.CYAN, _setup.Colors.BOLD), end="\n\n")
-    for label, value in (("Settings:", f"  {_setup.get_config_path()}"), ("API Keys:", f"  {_setup.get_env_path()}"),
-                         ("Data:", f"      {hermes_home}/cron/, sessions/, logs/")):
+    print(_setup.color(t("cli.setup.summary.files", path=f"{_dhh()}/"), _setup.Colors.CYAN, _setup.Colors.BOLD), end="\n\n")
+    for label, value in ((t('cli.setup.settings_label'), f"  {_setup.get_config_path()}"), (t('cli.setup.api_keys_label'), f"  {_setup.get_env_path()}"),
+                         (t('cli.setup.data_label'), f"      {hermes_home}/cron/, sessions/, logs/")):
         print(f"   {_setup.color(label, _setup.Colors.YELLOW)}{value}")
     print()
 
-    _print_section_header("📝 To edit your configuration:")
+    _print_section_header(t('cli.setup.edit_title'))
     _print_cmd_rows(_EDIT_WIZARD_ROWS)
     print()
     _print_cmd_rows(_EDIT_CONFIG_ROWS)
-    print("                          Set a specific value\n\n   Or edit the files directly:")
+    print(t('cli.setup.specific_value'))
     for path in (_setup.get_config_path(), _setup.get_env_path()):
         print(f"   {_setup.color(f'nano {path}', _setup.Colors.DIM)}")
     print()
 
-    _print_section_header("🚀 Ready to go!")
+    _print_section_header(t('cli.setup.ready'))
     _print_cmd_rows(_READY_ROWS)
     print()
 

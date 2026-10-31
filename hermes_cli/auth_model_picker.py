@@ -6,6 +6,8 @@ lazily per function so ``hermes_cli.auth.<helper>`` patches still intercept and 
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import logging
 import subprocess
 from typing import Dict, List, Optional
@@ -13,9 +15,9 @@ from hermes_cli.auth_constants import DEFAULT_NOUS_PORTAL_URL
 
 logger = logging.getLogger("hermes_cli.auth")
 
-_CUSTOM_LABEL = "Enter custom model name"
-_SKIP_LABEL = "Skip (keep current)"
-_CURRENT_SUFFIX = "  ← currently in use"
+
+def _model_picker_title(title: str | None) -> str:
+    return title or t("cli.auth.model_select_title")
 
 
 def _confirm_selection_guards(
@@ -41,11 +43,11 @@ def _confirm_selection_guards(
     print(combined_message(warnings))
     print("=" * 72)
     try:
-        response = input("Switch anyway? [y/N]: ").strip().lower()
+        response = input(t("cli.auth.model_switch_confirm")).strip().lower()
     except (KeyboardInterrupt, EOFError):
         print()
         return False
-    return response in {"y", "yes"}
+    return response in {"y", "yes", "ใช่"}
 
 
 # Usage column on a window plan: "Large" / "Free" (other levels carry no tag).
@@ -140,13 +142,13 @@ class _ModelPickerRows:
         segs: list[tuple[str, str | None]] = [(f"{mid:<{self.name_col}}", "dim" if self.usage.blocks(mid) else None)]
         from hermes_cli.model_picker_usage import usage_level_label
         level = self.levels.get(mid)
-        word = usage_level_label(level, "en")
+        word = usage_level_label(level)
         segs.extend(((_GAUGE_GAP, None), (f"{word:<{_COST_COL}}", _LEVEL_STYLE.get(level or ""))))
         return segs
 
     def segments(self, mid: str) -> list[tuple[str, str | None]]:
         """Build a rich radiolist row: yellow ★/% , dim was, plain prices — or usage gauges on the window."""
-        current = [(_CURRENT_SUFFIX, None)] if mid == self.current_model else []
+        current = [(t("cli.auth.model_current"), None)] if mid == self.current_model else []
         note = [(f"  · {self.notes[mid]}", "dim")] if self.notes.get(mid) else []
         if self.window_mode:
             return self._cost_segments(mid) + current
@@ -168,7 +170,7 @@ class _ModelPickerRows:
         if on_sale:
             segs.append((f"  -{pct}%", "yellow"))
             if was_inp or was_out:
-                segs.append((f"  was {was_inp}/{was_out}", "dim"))
+                segs.append((t("cli.auth.model_previous_price", input=was_inp, output=was_out), "dim"))
         return segs + note + current
 
     def label(self, mid: str) -> str:
@@ -185,29 +187,28 @@ class _ModelPickerRows:
             for i, line in enumerate(plan_gauge_lines(self.usage)):
                 suffix = f" — {self.usage.included_summary}" if i == 0 else ""
                 lines.append(f"{pad}{line}{suffix}")
-            lines.append(f"{pad}{'':>{self.name_col}}{_GAUGE_GAP}Usage")
+            lines.append(f"{pad}{'':>{self.name_col}}{_GAUGE_GAP}" + t('cli.auth.model_usage'))
             return lines
         if self.has_pricing:
-            header = f"{pad}{'':>{self.name_col}} {'In':>{self.price_col}}  {'Out':>{self.price_col}}"
+            header = f"{pad}{'':>{self.name_col}} {t('cli.auth.model_input'):>{self.price_col}}  {t('cli.auth.model_output'):>{self.price_col}}"
             if self.has_cache:
-                header += f"  {'Cache':>{self.cache_col}}"
+                header += f"  {t('cli.auth.model_cache'):>{self.cache_col}}"
             header += "  $/Mtok"
             if self.any_on_sale:
-                header += "  ★ = on sale"
+                header += t("cli.auth.model_sale")
             lines.append(header)
         return lines
 
-    def menu_title(self, title: str = "Select default model:") -> str:
+    def menu_title(self, title: str | None = None) -> str:
         """*title* plus the description lines (headers / gauges), newline-joined."""
         lines = self.description_lines()
-        return title + ("\n" + "\n".join(lines) if lines else "")
+        return _model_picker_title(title) + ("\n" + "\n".join(lines) if lines else "")
 
     def footnote(self) -> str:
         """Window plan with a Large row listed: the one line that says what Large means."""
         if not self.has_top_tier:
             return ""
-        from hermes_cli.model_picker_usage import TOP_TIER_FOOTNOTE
-        return TOP_TIER_FOOTNOTE
+        return t("cli.auth.model_large_footnote")
 
 
 def _picker_order(model_ids: list[str], current_model: str, window_usage) -> tuple[list[str], dict[int, str], int]:
@@ -218,13 +219,13 @@ def _picker_order(model_ids: list[str], current_model: str, window_usage) -> tup
     """
     sections: dict[int, str] = {}
     if window_usage is not None:
-        from hermes_cli.model_picker_usage import SECTION_OTHER, SECTION_RECOMMENDED, split_recommended
+        from hermes_cli.model_picker_usage import split_recommended
         head, rest = split_recommended(list(dict.fromkeys(model_ids)), window_usage.featured_model_ids)
         ordered = head + rest
         if head:
-            sections[0] = SECTION_RECOMMENDED
+            sections[0] = t("cli.auth.model_recommended")
             if rest:
-                sections[len(head)] = SECTION_OTHER
+                sections[len(head)] = t("cli.auth.model_other_models")
     else:
         # Reorder: current model first, then the rest (deduplicated)
         ordered = list(dict.fromkeys(
@@ -247,8 +248,8 @@ def _print_numbered_rows(rows: _ModelPickerRows, menu_title: str, ordered: list[
         if (i - 1) in sections:
             print(f"  {_DIM}{sections[i - 1]}{_RESET}")
         print(f"  {i:>{num_width}}. {format_radio_item_ansi(rows.segments(mid))}")
-    print(f"  {n + 1:>{num_width}}. {_CUSTOM_LABEL}")
-    print(f"  {n + 2:>{num_width}}. {_SKIP_LABEL}")
+    print(f"  {n + 1:>{num_width}}. {t('cli.auth.model_custom')}")
+    print(f"  {n + 2:>{num_width}}. {t('cli.auth.model_skip')}")
     if footnote := rows.footnote():
         print(f"  {_DIM}{footnote}{_RESET}")
     return num_width
@@ -260,7 +261,7 @@ def _prompt_model_selection(
     unavailable_models: Optional[list[str]] = None, portal_url: str = "",
     unavailable_message: str = "", confirm_provider: str = "", confirm_base_url: str = "",
     confirm_api_key: str = "", usage=None,
-    notes: Optional[dict[str, str]] = None, title: str = "Select default model:",
+    notes: Optional[dict[str, str]] = None, title: str | None = None,
 ) -> Optional[str]:
     """Interactive model picker; current_model listed first. Returns the chosen model ID or None. *title* heads
     the menu (a plugin picking a model for something other than the default says so).
@@ -271,6 +272,7 @@ def _prompt_model_selection(
     gateway's per-model usage word on a usage-window plan.
     """
     from hermes_cli.cli_output import line_input
+    title = _model_picker_title(title)
     _unavailable = unavailable_models or []
     # Sale chrome is Nous Portal-only, even if pricing.original is present for another provider.
     sale_chrome = (confirm_provider or "").strip().lower() == "nous"
@@ -287,7 +289,7 @@ def _prompt_model_selection(
 
     def _custom_selection() -> Optional[str]:
         try:
-            custom = line_input("Enter model name: ").strip()
+            custom = line_input(t("cli.auth.model_enter_name")).strip()
         except (EOFError, KeyboardInterrupt):
             return None
         return _confirmed_selection(custom) if custom else None
@@ -309,11 +311,11 @@ def _prompt_model_selection(
     # Try arrow-key menu first, fall back to number input.
     try:
         from hermes_cli.curses_ui import curses_radiolist
-        choices = [rows.segments(mid) for mid in ordered] + [_CUSTOM_LABEL, _SKIP_LABEL]
+        choices = [rows.segments(mid) for mid in ordered] + [t("cli.auth.model_custom"), t("cli.auth.model_skip")]
 
         unavailable_footer = unavailable_message.strip()
         if not unavailable_footer and _unavailable:
-            unavailable_footer = f"Upgrade at {_upgrade_url} for paid models"
+            unavailable_footer = t("cli.auth.model_upgrade", url=_upgrade_url)
 
         # Header/legend/gauges + unavailable block go in the description so they survive the curses clear.
         desc_lines: list[str] = rows.description_lines()
@@ -330,7 +332,7 @@ def _prompt_model_selection(
         for mid in ordered:
             label, haystack = rows.label(mid), model_search_text(mid)
             model_search_labels.append(label if haystack == mid else f"{label} {haystack}")
-        model_search_labels += [_CUSTOM_LABEL, _SKIP_LABEL]
+        model_search_labels += [t("cli.auth.model_custom"), t("cli.auth.model_skip")]
 
         idx = curses_radiolist(
             title,
@@ -358,7 +360,7 @@ def _prompt_model_selection(
 
     if _unavailable:
         unavailable_footer = unavailable_message.strip() or (
-            f"Unavailable models (requires paid tier — upgrade at {_upgrade_url})"
+            t("cli.auth.model_unavailable", url=_upgrade_url)
         )
         print()
         print(f"  {_DIM}── {unavailable_footer} ──{_RESET}")
@@ -368,7 +370,7 @@ def _prompt_model_selection(
 
     while True:
         try:
-            choice = input(f"Choice [1-{n + 2}] (default: skip): ").strip()
+            choice = input(t("cli.auth.model_number_choice", max=n + 2)).strip()
             if not choice:
                 return None
             idx = int(choice)
@@ -378,9 +380,9 @@ def _prompt_model_selection(
                 return _custom_selection()
             if idx == n + 2:
                 return None
-            print(f"Please enter 1-{n + 2}")
+            print(t("cli.auth.model_number_range", max=n + 2))
         except ValueError:
-            print("Please enter a number")
+            print(t("cli.auth.model_number_required"))
         except (KeyboardInterrupt, EOFError):
             return None
 

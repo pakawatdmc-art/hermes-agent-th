@@ -6,6 +6,8 @@ gateway, sessions, …) is built by ``hermes_cli/subcommands/<group>.py`` and wi
 """
 
 import argparse
+
+from agent.i18n import t
 import difflib
 import re
 from functools import lru_cache
@@ -87,58 +89,6 @@ def _inherited_flag(parser, *args, **kwargs):
     return action
 
 
-_EPILOGUE = """
-Examples:
-    hermes                        Start interactive chat
-    hermes chat -q "Hello"        Single query mode
-    hermes --tui                  Launch the modern TUI (or set display.interface: tui)
-    hermes --cli                  Force the classic REPL (overrides display.interface: tui)
-    hermes -c                     Resume the most recent session
-    hermes -c "my project"        Resume a session by name (latest in lineage)
-    hermes --resume <session_id>  Resume a specific session by ID
-    hermes --resume latest        Resume the most recent session (same as -c)
-    hermes --tui --resume latest --in ./dir   Resume ./dir's latest session in the TUI
-    hermes setup                  Run setup wizard
-    hermes logout                 Clear stored authentication
-    hermes auth add <provider>    Add a pooled credential
-    hermes auth list              List pooled credentials
-    hermes auth remove <p> <t>    Remove pooled credential by index, id, or label
-    hermes auth reset <p> [t]     Clear exhaustion status for a provider, or one credential
-    hermes auth priority <p> <t> <n>  Move a pooled credential to priority n (0 = tried first)
-    hermes auth refresh <p> [t]   Refresh a pooled OAuth credential and clear its cooldown
-    hermes model                  Select default model
-    hermes fallback [list]        Show fallback provider chain
-    hermes fallback add           Add a fallback provider (same picker as `hermes model`)
-    hermes fallback remove        Remove a fallback provider from the chain
-    hermes config                 View configuration
-    hermes config edit            Edit config in $EDITOR
-    hermes config set model gpt-4 Set a config value
-    hermes gateway                Run messaging gateway
-    hermes gateway install        Install gateway background service
-    hermes gateway start          Start the installed gateway service
-    hermes gateway stop           Stop the gateway service
-    hermes gateway status         Show gateway status
-    hermes -p <profile> <cmd>     Run any command against a named profile's
-                                  home (also --profile) — e.g. hermes -p coder gateway stop
-    hermes -s hermes-agent-dev,github-auth
-    hermes -w                     Start in isolated git worktree
-    hermes sessions list          List past sessions
-    hermes sessions browse        Interactive session picker
-    hermes sessions rename ID T   Rename/title a session
-    hermes logs                   View agent.log (last 50 lines)
-    hermes logs -f                Follow agent.log in real time
-    hermes logs errors            View errors.log
-    hermes logs --since 1h        Lines from the last hour
-    hermes debug share             Upload debug report for support
-    hermes console                Open the safe Hermes command console
-    hermes update                 Update to latest version
-    hermes dashboard              Start web UI dashboard (port 9119)
-    hermes dashboard --stop       Stop running dashboard processes
-    hermes dashboard --status     List running dashboard processes
-
-For more help on a command:
-    hermes <command> --help
-"""
 
 
 def _add_top_level_flags(parser: argparse.ArgumentParser) -> None:
@@ -385,10 +335,10 @@ def build_top_level_parser():
     ``subparsers.add_parser(...)``.
     """
     parser = HermesArgumentParser(
-        prog="hermes", description="Hermes Agent - AI assistant with tool-calling capabilities",
-        formatter_class=argparse.RawDescriptionHelpFormatter, epilog=_EPILOGUE)
+        prog="hermes", description=t("cli.setup.help.description"),
+        formatter_class=argparse.RawDescriptionHelpFormatter, epilog=t("cli.setup.help.examples"))
     _add_top_level_flags(parser)
     # metavar keeps the usage line to ``hermes [...] <command>`` instead of the brace list of
     # every subcommand name; ``hermes --help`` still lists each command with its help row.
-    subparsers = parser.add_subparsers(dest="command", help="Command to run", metavar="<command>")
+    subparsers = parser.add_subparsers(dest="command", help=t("cli.setup.help.command"), metavar="<command>")
     return parser, subparsers, _build_chat_parser(subparsers)

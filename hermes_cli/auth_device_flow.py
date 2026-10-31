@@ -6,6 +6,8 @@ inside each function so ``hermes_cli.auth.<name>`` patches still intercept (and 
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import base64
 import hashlib
 import logging
@@ -283,13 +285,7 @@ def _nous_device_auth_timeout_message(portal_base_url: str) -> str:
     20605), so point at the Portal login page and the retry command. See #20605.
     """
     portal = (portal_base_url or DEFAULT_NOUS_PORTAL_URL).rstrip("/")
-    return (
-        "Timed out waiting for device authorization.\n"
-        "  Portal sign-in is required before the device code can be approved.\n"
-        "  If the browser showed a CAPTCHA / 'You did not pass CAPTCHA' error,\n"
-        "  finish signing in at the Portal in a normal browser tab, then retry:\n"
-        "    hermes portal\n"
-        f"  Portal login: {portal}/login")
+    return t("cli.auth.nous_timeout", portal=portal)
 
 
 def _print_device_code_instructions(
@@ -301,9 +297,9 @@ def _print_device_code_instructions(
     provider); *failure_dash* keeps each provider's historical hint wording.
     """
     print()
-    print("To continue:")
-    print(f"  1. Open: {verification_url}")
-    print(f"  2. If prompted, enter code: {user_code}")
+    print(t("cli.auth.device_continue"))
+    print(t("cli.auth.device_open", url=verification_url))
+    print(t("cli.auth.device_code", code=user_code))
     if not open_browser:
         return
     try:
@@ -313,9 +309,9 @@ def _print_device_code_instructions(
             raise
         opened = False
     if opened:
-        print("  (Opened browser for verification)")
+        print(t("cli.auth.browser_opened"))
     else:
-        print(f"  Could not open browser automatically {failure_dash} use the URL above.")
+        print(t("cli.auth.browser_failed", dash=failure_dash))
 
 
 class DeviceFlowCancelled(Exception):
@@ -434,17 +430,17 @@ def _prompt_yes_no(prompt: str, *, default: str) -> bool:
         answer = input(prompt).strip().lower()
     except (EOFError, KeyboardInterrupt):
         answer = default
-    return answer in {"", "y", "yes"} if default == "y" else answer in {"y", "yes"}
+    return answer in {"", "y", "yes", "ใช่"} if default == "y" else answer in {"y", "yes", "ใช่"}
 
 
 def _print_login_success(
     provider_id: str, config_path: Path, *, show_auth_state: bool = False) -> None:
     print()
-    print("Login successful!")
+    print(t("cli.auth.login_success"))
     if show_auth_state:
         from hermes_constants import display_hermes_home as _dhh
-        print(f"  Auth state: {_dhh()}/auth.json")
-    print(f"  Config updated: {config_path} (model.provider={provider_id})")
+        print(t("cli.auth.auth_state", path=f"{_dhh()}/auth.json"))
+    print(t("cli.auth.config_updated", path=config_path, provider=provider_id))
 
 
 def _offer_existing_oauth_credentials(
@@ -461,8 +457,8 @@ def _offer_existing_oauth_credentials(
         existing = resolve()
         api_key = existing.get("api_key", "")
         if isinstance(api_key, str) and api_key and not is_expiring(api_key, 60):
-            print(f"Existing {display_name} credentials found in Hermes auth store.")
-            if _prompt_yes_no("Use existing credentials? [Y/n]: ", default="y"):
+            print(t("cli.auth.credentials_found", provider=display_name))
+            if _prompt_yes_no(t("cli.auth.reuse_credentials"), default="y"):
                 config_path = _update_config_for_provider(
                     provider_id, existing.get("base_url", default_base_url))
                 _print_login_success(provider_id, config_path)

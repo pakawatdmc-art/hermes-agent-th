@@ -77,10 +77,8 @@ def prompt(question: str, default: str | None = None, password: bool = False) ->
 
 
 def prompt_yes_no(question: str, default: bool = True) -> bool:
+    from hermes_cli.prompt_answers import parse_yes_no
+
     hint = t("cli.shared.yes_no_default_yes") if default else t("cli.shared.yes_no_default_no")
     answer = prompt(f"{question} ({hint})")
-    if not answer:
-        return default
-    # Accept the English "y" as well as the localized affirmative initial (Y/n hint's first letter).
-    yes_initial = t("cli.shared.yes_initial").strip().lower()
-    return answer.lower().startswith(("y", yes_initial) if yes_initial else "y")
+    return parse_yes_no(answer, default) is True

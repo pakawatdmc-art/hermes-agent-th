@@ -10,6 +10,8 @@ so ``hermes_cli.auth.<name>`` patches still intercept (and no import cycle).
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import logging
 import hashlib
 import json
@@ -956,20 +958,20 @@ def _login_openai_codex(args, pconfig: ProviderConfig, *, force_new_login: bool 
             "openai-codex", resolve=resolve_codex_runtime_credentials,
             is_expiring=_codex_access_token_is_expiring, display_name="Codex",
             default_base_url=DEFAULT_CODEX_BASE_URL,
-            expired_notice="Existing Codex credentials are expired. Starting fresh login..."):
+            expired_notice=t("cli.auth.codex_expired")):
             return
         cli_tokens = _import_codex_cli_tokens()
         if cli_tokens:
-            print("Found existing Codex CLI credentials at ~/.codex/auth.json")
-            print("Hermes will create its own session to avoid conflicts with Codex CLI / VS Code.")
+            print(t("cli.auth.codex_cli_found"))
+            print(t("cli.auth.codex_own_session"))
             if _prompt_yes_no(
-                "Import these credentials? (a separate login is recommended) [y/N]: ", default="n"):
+                t("cli.auth.codex_import"), default="n"):
                 _save_codex_tokens(cli_tokens)
                 config_path = _update_config_for_provider("openai-codex", _codex_base_url())
                 print()
-                print("Credentials imported. Note: if Codex CLI refreshes its token,")
-                print("Hermes will keep working independently with its own session.")
-                print(f"  Config updated: {config_path} (model.provider=openai-codex)")
+                print(t("cli.auth.codex_imported"))
+                print(t("cli.auth.codex_independent"))
+                print(t("cli.auth.config_updated", path=config_path, provider="openai-codex"))
                 return
 
     # Run a fresh OAuth flow — Hermes gets its own session (device code unless the user opted in
@@ -990,11 +992,11 @@ def _codex_login_rate_limited_error(response: httpx.Response, *, during: str = "
     # #32790).
     retry_after = _parse_retry_after_seconds(getattr(response, "headers", None))
     wait_hint = (
-        f" Try again in about {retry_after}s." if retry_after is not None
-        else " Wait a minute and run the login again.")
+        t("cli.auth.codex_wait_seconds", seconds=retry_after) if retry_after is not None
+        else t("cli.auth.codex_wait_minute"))
+    during = t("cli.auth.codex_during_exchange") if during == " during token exchange" else during
     return _codex_err(
-        f"OpenAI is rate-limiting Codex login requests (HTTP 429){during}. "
-        f"This is a temporary throttle on OpenAI's side, not a credential problem.{wait_hint}",
+        t("cli.auth.codex_rate_limited", during=during, wait_hint=wait_hint),
         CODEX_RATE_LIMITED_CODE)
 
 
@@ -1016,7 +1018,7 @@ def _codex_request_device_code(issuer: str, client_id: str) -> dict[str, Any]:
             # Exponential backoff (2s, 4s, 8s) capped, preferring the server's Retry-After.
             retry_after = _parse_retry_after_seconds(getattr(resp, "headers", None))
             delay = max(1, min(int(retry_after if retry_after is not None else 2 ** attempt), 60))
-            print(f"OpenAI is rate-limiting login requests (429); retrying in {delay}s...")
+            print(t("cli.auth.codex_retry_after", seconds=delay))
             time.sleep(delay)
     if resp.status_code == 429:
         raise _codex_login_rate_limited_error(resp)
@@ -1058,7 +1060,7 @@ def _codex_poll_authorization_code(
                             f"Device auth polling request failed after {consecutive_blips} consecutive"
                             f" transport errors: {exc}{_ssl_interop_hint(exc)}",
                             "device_code_poll_error") from exc
-                    print("Transient network error while waiting for sign-in; retrying...")
+                    print(t("cli.auth.network_retry"))
                     continue
                 consecutive_blips = 0
                 if poll_resp.status_code == 200:
@@ -1069,10 +1071,10 @@ def _codex_poll_authorization_code(
                         f"Device auth polling returned status {poll_resp.status_code}.",
                         "device_code_poll_error")
     except KeyboardInterrupt:
-        print("\nLogin cancelled.")
+        print("\n" + t("cli.auth.login_cancelled"))
         raise SystemExit(130)
     if code_resp is None:
-        raise _codex_err("Login timed out after 15 minutes.", "device_code_timeout")
+        raise _codex_err(t("cli.auth.codex_timeout"), "device_code_timeout")
     return code_resp
 
 
@@ -1113,12 +1115,12 @@ def _codex_device_code_login() -> dict[str, Any]:
     user_code = device_data["user_code"]
 
     # Step 2: Show user the code
-    print("To continue, follow these steps:\n")
-    print("  1. Open this URL in your browser:")
+    print(t("cli.auth.codex_steps"))
+    print(t("cli.auth.codex_open"))
     print(f"     \033[94m{issuer}/codex/device\033[0m\n")
-    print("  2. Enter this code:")
+    print(t("cli.auth.codex_code"))
     print(f"     \033[94m{user_code}\033[0m\n")
-    print("Waiting for sign-in... (press Ctrl+C to cancel)")
+    print(t("cli.auth.waiting_sign_in"))
     code_resp = _codex_poll_authorization_code(
         issuer, device_auth_id=device_data["device_auth_id"], user_code=user_code,
         poll_interval=device_data["interval"])

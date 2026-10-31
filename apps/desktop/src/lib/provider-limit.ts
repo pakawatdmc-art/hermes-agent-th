@@ -123,12 +123,12 @@ export function poolUsage(provider: ModelOptionProvider, nowMs = Date.now()) {
 }
 
 /** `4:30 PM` today, `Oct 6, 9:00 AM` on another day. Infinity = unknown. */
-export function formatReset(ms: number, nowMs = Date.now()): null | string {
+export function formatReset(ms: number, nowMs = Date.now(), locale?: string): null | string {
   if (!Number.isFinite(ms)) {
     return null
   }
 
   return startOfLocalDay(ms) === startOfLocalDay(nowMs) || ms - nowMs < DAY / 4
-    ? fmtClock.format(ms)
-    : fmtDayTime.format(ms)
+    ? fmtClock.format(ms, locale)
+    : fmtDayTime.format(ms, locale)
 }

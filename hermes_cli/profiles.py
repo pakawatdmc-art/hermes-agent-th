@@ -724,22 +724,6 @@ def _read_config_model(profile_dir: Path) -> tuple:
     return _cached_profile_read(config_path, "config-model", _read, config_cache_version_or_none)
 
 
-def _seed_model_config(profile_dir: Path) -> None:
-    """Copy (not link) the active profile's model block into a fresh profile so it is usable;
-    profiles stay independent islands afterwards."""
-    config_path = profile_dir / "config.yaml"
-    if config_exists(config_path):
-        return
-    with contextlib.suppress(Exception):  # creation must not fail over this; `hermes model` sets it later
-        from hermes_constants import get_hermes_home
-        from hermes_cli.config import atomic_config_write, read_user_config_raw
-        from hermes_cli.profile_model_seed import launch_model_seed
-        source = get_hermes_home() / "config.yaml"
-        seed = launch_model_seed(read_user_config_raw(source)) if config_exists(source) else {}
-        if seed:
-            atomic_config_write(config_path, seed)
-
-
 def _check_gateway_running(profile_dir: Path) -> bool:
     """Gateway liveness for a profile dir, never mutating HERMES_HOME.
 
@@ -1316,7 +1300,8 @@ def _bootstrap_profile_dir(profile_dir: Path, source_dir: Optional[Path],
     for subdir in _PROFILE_DIRS:
         (profile_dir / subdir).mkdir(parents=True, exist_ok=True)
     if source_dir is None:
-        _seed_model_config(profile_dir)
+        from hermes_cli.profiles_initialization import seed_new_profile_config
+        seed_new_profile_config(profile_dir)
         return
     for relpath in _CLONE_CONFIG_FILES:
         _clone_file(source_dir, profile_dir, relpath)

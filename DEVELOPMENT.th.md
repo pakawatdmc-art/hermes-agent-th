@@ -28,6 +28,8 @@ cache ดาวน์โหลดของ PM อยู่ภายนอกซ�
 หากแก้ Python หรือ catalog ให้จบงานและปิดทั้งสองหน้าจอ แล้วใช้ `./dev hermes gateway stop`
 ก่อนเปิดใหม่ เพื่อให้บริการเบื้องหลังโหลดซอร์สและคำแปลล่าสุด
 การแก้คำแนะนำใน `SOUL.md` ให้ทดสอบในบทสนทนาใหม่ เพื่อรักษา prompt caching ของบทสนทนาที่มีอยู่
+การติดตั้งใหม่เรียก `hermes_cli.thai_defaults` หลังเตรียม runtime เพื่อสร้างค่าภาษา/เสียงไทย
+เมื่อมีไฟล์ตั้งค่าอยู่แล้วจะไม่เขียนทับ ส่วนการโคลนโปรไฟล์รักษาค่าของต้นฉบับ
 
 ## ทดสอบการรองรับภาษาไทย
 
@@ -36,7 +38,9 @@ cache ดาวน์โหลดของ PM อยู่ภายนอกซ�
 ```bash
 ./dev npm run build:ink --workspace ui-tui
 ./dev test tests/agent/test_i18n_thai.py tests/agent/test_i18n_tui_packs.py tests/gateway/test_session_i18n.py tests/tui_gateway/contracts/test_generated.py
+./dev test tests/hermes_cli/test_thai_defaults.py tests/hermes_cli/test_setup_thai.py tests/hermes_cli/test_auth_thai.py tests/hermes_state/test_search_thai_substrings.py tests/tools/test_thai_file_workflow.py
 ./dev npm exec --workspace apps/desktop -- vitest run src/i18n/thai.test.tsx src/i18n/catalog-completeness.test.ts src/i18n/overlay-completeness.test.ts --maxWorkers=2
+./dev npm exec --workspace apps/desktop -- vitest run src/i18n/edition-default.test.tsx src/lib/time-context.test.tsx src/lib/time-locale.test.ts src/components/desktop-install-thai.test.tsx src/app/chat/composer/hooks/use-composer-placeholder.test.tsx --maxWorkers=2
 ./dev npm exec --workspace ui-tui -- vitest run src/__tests__/i18nThai.test.ts src/__tests__/textInputThai.test.tsx --maxWorkers=2
 ./dev npm run typecheck --workspace apps/desktop
 ./dev check
@@ -45,6 +49,9 @@ cache ดาวน์โหลดของ PM อยู่ภายนอกซ�
 Python tests ต้องผ่าน `scripts/run_tests.sh` ซึ่ง `./dev test` เรียกให้อยู่แล้ว
 ทดสอบเฉพาะส่วนที่เกี่ยวข้องก่อน โดยเฉพาะบนเครื่องที่มีหน่วยความจำจำกัด
 ก่อนส่งการเปลี่ยนแปลงให้ตรวจ build และ workflow จริงที่ได้รับผลกระทบด้วย
+การทดสอบหน้าจอที่ใช้ React Compiler ต้องส่งภาษาที่เลือกเป็นพารามิเตอร์ให้ตัวจัดรูปแบบวันที่
+เพื่อให้การคำนวณที่ compiler จำไว้เปลี่ยนตามภาษา ทดสอบการสลับไทย/อังกฤษในคอมโพเนนต์จริงด้วย
+หลังรับซอร์สต้นทาง ให้รันชุดทดสอบข้างต้นเพื่อตรวจคีย์ใหม่ placeholders การอนุญาต และภาษาแต่ละโปรไฟล์
 
 ## เมื่อเปลี่ยน dependencies หรือรับอัปเดต
 

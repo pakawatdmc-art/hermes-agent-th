@@ -493,7 +493,7 @@ function BillingSettingsContent({
   fixtureName?: BillingFixtureSelection
   onFixtureChange?: (value: BillingFixtureSelection) => void
 }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const b = t.settings.billing
   const [subView, setSubView] = useRouteEnumParam<BillingSubView>('bview', BILLING_VIEWS, 'overview')
 
@@ -516,7 +516,7 @@ function BillingSettingsContent({
 
   const billingResult = billingState.data
   const subscriptionResult = subscriptionState.data
-  const view = deriveBillingView(billingResult, subscriptionResult, b)
+  const view = deriveBillingView(billingResult, subscriptionResult, b, locale)
   const billing = billingResult?.ok ? billingResult.data : undefined
 
   const { paymentRow, refillRow, topupRow } = view

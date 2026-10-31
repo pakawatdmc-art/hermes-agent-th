@@ -18,10 +18,13 @@ import {
   resolveTranslations,
   unregisterAppLocaleSource
 } from './registry'
-import { translateNow } from './runtime'
+import { getRuntimeI18nLocale, setRuntimeI18nLocale, translateNow } from './runtime'
+
+const initialLocale = getRuntimeI18nLocale()
 
 afterEach(() => {
   resetAppLocaleRegistry()
+  setRuntimeI18nLocale(initialLocale)
 })
 
 describe('registerAppLocale', () => {
@@ -160,8 +163,9 @@ describe('languages + registry', () => {
     const options = languageOptions()
     const ids = options.map(option => option.id)
 
-    expect(ids.slice(0, 9)).toEqual(Object.keys(TRANSLATIONS))
-    expect(ids.slice(9)).toEqual(['he', 'pl'])
+    const bundled = Object.keys(TRANSLATIONS)
+    expect(ids.slice(0, bundled.length)).toEqual(bundled)
+    expect(ids.slice(bundled.length)).toEqual(['he', 'pl'])
     expect(options.find(option => option.id === 'pl')).toMatchObject({
       endonym: 'Polski',
       englishName: 'Polish',
@@ -176,6 +180,7 @@ describe('languages + registry', () => {
 
 describe('translateNow', () => {
   it('reads registered packs for the runtime locale', () => {
+    setRuntimeI18nLocale('en')
     registerAppLocale('en', { translations: { common: { save: 'Keep' } } }, 'backend')
 
     expect(translateNow('common.save')).toBe('Keep')

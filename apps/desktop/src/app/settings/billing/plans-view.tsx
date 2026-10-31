@@ -20,7 +20,8 @@ type DowngradeFlow = ReturnType<typeof useDowngradeFlow>
 function previewMessage(
   phase: DowngradePhase,
   fallbackTierName: string,
-  b: Translations['settings']['billing']
+  b: Translations['settings']['billing'],
+  locale: string
 ): null | string {
   const bp = b.plan
 
@@ -44,7 +45,7 @@ function previewMessage(
       return bp.alreadyOn(targetName)
 
     case 'scheduled':
-      return bp.effectScheduled(targetName, formatBillingDate(preview.effective_at), creditsDelta ?? '')
+      return bp.effectScheduled(targetName, formatBillingDate(preview.effective_at, locale), creditsDelta ?? '')
 
     default:
       return bp.notScheduleable
@@ -53,7 +54,7 @@ function previewMessage(
 
 // The in-card preview → confirm panel for a downgrade (mirrors the TUI confirm flow).
 function DowngradeConfirm({ flow, tier }: { flow: DowngradeFlow; tier: BillingPlanTierView }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const bp = t.settings.billing.plan
   const active = flow.active
   const panelRef = useRef<HTMLDivElement>(null)
@@ -75,7 +76,7 @@ function DowngradeConfirm({ flow, tier }: { flow: DowngradeFlow; tier: BillingPl
   const captionCn = 'text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)'
   const refusal = phase.kind === 'previewFailed' || phase.kind === 'scheduleFailed' ? phase.refusal : null
   const busy = phase.kind === 'previewing' || phase.kind === 'scheduling'
-  const message = previewMessage(phase, tier.name, t.settings.billing)
+  const message = previewMessage(phase, tier.name, t.settings.billing, locale)
 
   const canConfirm =
     (phase.kind === 'ready' && phase.preview.effect === 'scheduled') ||

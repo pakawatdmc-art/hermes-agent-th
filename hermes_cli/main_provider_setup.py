@@ -6,6 +6,8 @@ Split out of ``hermes_cli/main.py``. Names that still live in main are imported 
 
 import contextlib
 
+from agent.i18n import t
+
 from typing import Optional
 from hermes_cli.model_setup_flows_common import _ask, _ensure_dict_section, _print_numbered, _radiolist, _say
 
@@ -191,7 +193,7 @@ def _prompt_aux_reasoning_effort(task: str, current: str) -> Optional[str]:
     keep current. The empty-value row is "Inherit parent" for delegation (a child inherits the parent's
     effort; wording from #105431 by @fangliquanflq) and "Provider default" for aux tasks."""
     from hermes_constants import VALID_REASONING_EFFORTS
-    label = "Inherit parent" if task == _DELEGATION_TASK_KEY else "Provider default"
+    label = t("cli.setup.reasoning.inherit_parent") if task == _DELEGATION_TASK_KEY else t("cli.setup.reasoning.provider_default")
     return _prompt_reasoning_effort_selection(
         list(VALID_REASONING_EFFORTS), current_effort=current, default_label=label)
 
@@ -400,9 +402,10 @@ def _ask_index(prompt: str, count: int, *, echo_cancel: bool):
             return _CANCELLED
 
 
-def _prompt_provider_choice(choices, *, default=0, title="Select provider:"):
+def _prompt_provider_choice(choices, *, default=0, title=None):
     """Provider menu with curses arrow keys; numbered-list fallback when curses is unavailable
     (piped stdin, non-TTY). Returns the selected index, or None if the user cancels."""
+    title = title or t("cli.setup.provider.select")
     with contextlib.suppress(Exception):
         from hermes_cli.setup import _curses_prompt_choice
         idx = _curses_prompt_choice(title, choices, default)
@@ -412,7 +415,7 @@ def _prompt_provider_choice(choices, *, default=0, title="Select provider:"):
 
     _print_numbered(title, choices, default)
     print()
-    idx = _ask_index(f"Choice [1-{len(choices)}] ({default + 1}): ", len(choices), echo_cancel=True)
+    idx = _ask_index(t("cli.setup.provider.choice", count=len(choices), default=default + 1), len(choices), echo_cancel=True)
     if idx is None:
         return default
     return None if idx is _CANCELLED else idx
@@ -598,14 +601,15 @@ def _prompt_reasoning_effort_selection(efforts, current_effort="", *, default_la
         return None
 
     def _label(effort):
-        return f"{effort}  ← currently in use" if effort == current_effort else effort
+        label = t(f"cli.setup.reasoning.level.{effort}") if effort in canonical_order else effort
+        return t("cli.setup.reasoning.current", label=label) if effort == current_effort else label
 
-    disable_label = "Disable reasoning"
-    skip_label = "Skip (keep current)"
+    disable_label = t("cli.setup.reasoning.disable")
+    skip_label = t("cli.auth.model_skip")
     # (return value, label) for the rows after the ladder; "" = provider default (aux tasks only).
     tail: list[tuple[Optional[str], str]] = [("none", disable_label)]
     if default_label:
-        tail.append(("", default_label + ("  ← currently in use" if current_effort == "" else "")))
+        tail.append(("", t("cli.setup.reasoning.current", label=default_label) if current_effort == "" else default_label))
     tail.append((None, skip_label))
     tail_values = [v for v, _ in tail]
     if current_effort == "none":
@@ -621,17 +625,17 @@ def _prompt_reasoning_effort_selection(efforts, current_effort="", *, default_la
 
     n = len(ordered)
     rows = [_label(effort) for effort in ordered] + [label for _, label in tail]
-    idx = _radiolist("Select reasoning effort:", rows, default_idx)
+    idx = _radiolist(t("cli.setup.reasoning.select"), rows, default_idx)
     if idx is not None:
         if idx < 0:
             return None
         print()
     else:
-        print("Select reasoning effort:")
+        print(t("cli.setup.reasoning.select"))
         for i, row in enumerate(rows, 1):
             print(f"  {i}. {row}")
         print()
-        idx = _ask_index(f"Choice [1-{len(rows)}] (default: keep current): ", len(rows), echo_cancel=False)
+        idx = _ask_index(t("cli.setup.reasoning.choice", count=len(rows)), len(rows), echo_cancel=False)
         if idx is None or idx is _CANCELLED:
             return None
     if idx < n:
@@ -677,7 +681,7 @@ def _prompt_main_reasoning_effort(model: str, provider: str) -> None:
     cfg = load_config()
     _set_reasoning_effort(cfg, selected)
     save_config(cfg)
-    print("Reasoning disabled for this model." if selected == "none" else f"Reasoning effort set to: {selected}")
+    print(t("cli.setup.reasoning.disabled") if selected == "none" else t("cli.setup.reasoning.saved", effort=selected))
 
 
 def _main_model_reasoning_efforts(model: str, provider: str) -> Optional[list[str]]:
@@ -938,19 +942,20 @@ def _build_provider_picker_rows(config: dict, active: str, provider_labels: dict
     def _add(key, label, members, is_active):
         nonlocal default_idx
         if is_active:
-            label = f"{label}  ← currently active"
+            label = t("cli.setup.provider.current_label", label=label)
             default_idx = len(ordered)
         ordered.append((key, label, members))
 
     for row in group_providers(_visible_slugs):
         if row["kind"] == "group":
             gid = row["group_id"]
-            group_desc = row.get("description", "")
+            group_desc = _translated_picker_description(f"cli.setup.provider_group.{gid}", row.get("description", ""))
             label = f"{row['label']} ▸ ({group_desc})" if group_desc else f"{row['label']} ▸"
             _add(f"group:{gid}", label, row["members"], bool(active_group) and gid == active_group)
         else:
             slug = row["slug"]
-            label = canonical_descs.get(slug, provider_labels.get(slug, slug))
+            label = _translated_picker_description(f"cli.setup.provider_desc.{slug}",
+                                                    canonical_descs.get(slug, provider_labels.get(slug, slug)))
             if slug == "nous":
                 # Same free-tier rule as the gateway/TUI pickers: relabel for a guest, hide
                 # when nous.guest is off, untouched for a real account.
@@ -970,12 +975,46 @@ def _build_provider_picker_rows(config: dict, active: str, provider_labels: dict
     from hermes_cli.model_setup_flows_local import local_models_available
     from hermes_cli.providers import LLAMACPP_ALIASES
     if not _cli_excluded & set(LLAMACPP_ALIASES) and local_models_available():
-        _add("llamacpp", "Local models (run open models on this machine — no account or API key)", [],
+        _add("llamacpp", t("cli.setup.provider.local"), [],
              active == "llamacpp")
-    ordered.append(("custom", "Custom endpoint (enter URL manually)", []))
+    ordered.append(("custom", t("cli.setup.provider.custom"), []))
     if isinstance(config.get("custom_providers"), list) and config.get("custom_providers"):
-        ordered.append(("remove-custom", "Remove a saved custom provider", []))
-    ordered.append(("reasoning", "Reasoning effort for the current model...", []))
-    ordered.append(("aux-config", "Configure auxiliary models...", []))
-    ordered.append(("cancel", "Leave unchanged", []))
+        ordered.append(("remove-custom", t("cli.setup.provider.remove_custom"), []))
+    ordered.append(("reasoning", t("cli.setup.provider.reasoning"), []))
+    ordered.append(("aux-config", t("cli.setup.provider.auxiliary"), []))
+    ordered.append(("cancel", t("cli.setup.provider.unchanged"), []))
     return ordered, default_idx
+
+
+def _translated_picker_description(key: str, fallback: str) -> str:
+    """Uncatalogued plugin providers retain their own published description."""
+    translated = t(key)
+    return fallback if translated == key else translated
+
+
+def _pick_provider(config, active, provider_labels, custom_provider_map):
+    """Provider picker (+ group member sub-picker) -> concrete slug, or None on cancel."""
+    from hermes_cli import main as _main
+
+    # Group rows drill into a member sub-picker that resolves back to a
+    # concrete slug, so the flow dispatch is unchanged.
+    ordered, default_idx = _main._build_provider_picker_rows(
+        config, active, provider_labels, custom_provider_map
+    )
+    provider_idx = _main._prompt_provider_choice(
+        [label for _, label, _ in ordered],
+        default=default_idx,
+    )
+    if provider_idx is None or ordered[provider_idx][0] == "cancel":
+        return None
+    selected_key, group_label, selected_members = ordered[provider_idx]
+    if not selected_members:
+        return selected_key
+    # Default to the active member when it lives in this group. The group row
+    # carries the descriptive text, so member rows show only their short label.
+    member_idx = _main._prompt_provider_choice(
+        [provider_labels.get(m, m) for m in selected_members],
+        default=selected_members.index(active) if active in selected_members else 0,
+        title=t("cli.setup.provider.group_select", group=group_label.split(" ▸", 1)[0]),
+    )
+    return None if member_idx is None else selected_members[member_idx]

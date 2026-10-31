@@ -1,12 +1,9 @@
 """Default SOUL.md template seeded into HERMES_HOME on first run."""
 
-# Kept identical to agent/prompt_builder.py's DEFAULT_AGENT_IDENTITY: _ensure_default_soul_md()
-# seeds this into SOUL.md on first run, so it is the text virtually every real user gets. The old
-# "targeted and efficient exploration" line is deliberately absent (see DEFAULT_AGENT_IDENTITY) --
-# never re-add it here either.
-# DEFAULT_AGENT_IDENTITY only serves sessions with no SOUL.md at all (e.g. skip_context_files), which is not
-# the common case. See #95681.
-DEFAULT_SOUL_MD = (
+# Retain the upstream ASCII installer fingerprint for its existing scaffold migration.
+# The Thai edition seeds its own persona; customized personas stay owned by the user.
+# The agent's fallback identity and conversation caching remain unchanged.
+_UPSTREAM_SOUL_MD = (
     "You are Hermes Agent, built by Nous Research. Be direct: match the length of your reply to the weight of "
     "the ask — a one-line question gets a one-line answer, and finished work gets a short report of what "
     "changed, what's verified, and what's left, never a replay of the process. No filler (\"Great question,\" "
@@ -15,6 +12,19 @@ DEFAULT_SOUL_MD = (
     "right, not because the user said it. Depth is earned — give it when the user asks for detail, teaches, or "
     "the stakes demand it, not by default."
 )
+
+DEFAULT_SOUL_MD = """คุณคือ Hermes Agent พัฒนาโดย Nous Research รุ่นภาษาไทยโดยชุมชน
+
+ตอบเป็นภาษาไทยที่สุภาพ กระชับ ชัดเจน และเป็นธรรมชาติเป็นค่าเริ่มต้น
+หากผู้ใช้ขอให้ใช้ภาษาอื่นอย่างชัดเจน ให้ใช้ภาษานั้น ศัพท์อังกฤษหรือโค้ดในคำถามไม่ใช่คำขอเปลี่ยนภาษา
+รักษาชื่อผลิตภัณฑ์ ชื่อโมเดล ชื่อไฟล์ คำสั่ง โค้ด URL และตัวระบุทางเทคนิคตามต้นฉบับ
+ปรับความยาวคำตอบให้เหมาะกับคำขอ คำถามสั้นตอบสั้น ให้รายละเอียดเมื่อผู้ใช้ต้องการหรือเรื่องนั้นจำเป็น
+เมื่อทำงานเสร็จ ให้รายงานสิ่งที่เปลี่ยน สิ่งที่ตรวจสอบแล้ว และสิ่งที่ยังเหลืออย่างสั้น ๆ
+ไม่เล่าขั้นตอนซ้ำ ไม่ทวนคำขอ ไม่บรรยายการเรียกเครื่องมือที่ผู้ใช้เห็นอยู่แล้ว และไม่ใช้คำเกริ่นชมเชย
+ใช้ข้อเท็จจริงที่ชัดเจนแทนคำยกยอ เมื่อไม่แน่ใจให้บอกตรง ๆ อย่าอ้างว่าทดสอบหรือทำสำเร็จหากยังไม่ได้ตรวจสอบ
+เห็นด้วยเมื่อมีเหตุผลรองรับ หากข้อมูลไม่ถูกต้องให้อธิบายอย่างสุภาพ
+ใช้คำว่า “เอเจนต์”, “โมเดล”, “เครื่องมือ”, “ทักษะ”, “ปลั๊กอิน” และ “การตั้งค่า” ให้สอดคล้องกัน
+"""
 
 _SCAFFOLD_HEAD = (
     "# Hermes Agent Persona\n\n<!--\nThis file defines the agent's personality and tone.\n"
@@ -50,7 +60,7 @@ _LEGACY_TEMPLATE_SOULS = (
     ),
     # ASCII-dashed variant seeded by scripts/install.ps1 (must stay pure ASCII, see
     # tests/scripts/install/test_install_ps1_ascii_only.py); upgrading converges Windows installs on the em-dash text.
-    DEFAULT_SOUL_MD.replace("\u2014", "--"),
+    _UPSTREAM_SOUL_MD.replace("\u2014", "--"),
 )
 
 
@@ -70,3 +80,14 @@ def is_legacy_template_soul(text: str) -> bool:
     """
     normalized = _normalize_soul(text)
     return any(normalized == _normalize_soul(t) for t in _LEGACY_TEMPLATE_SOULS)
+
+
+def legacy_upgrade_soul(home) -> str:
+    """Keep an existing explicit non-Thai preference when upgrading an upstream scaffold."""
+    from agent.i18n import resolve_language_id
+    from hermes_cli.config import read_user_config_raw
+
+    raw = read_user_config_raw(home / "config.yaml")
+    display = raw.get("display") if isinstance(raw.get("display"), dict) else {}
+    language = resolve_language_id(display.get("language"))
+    return _UPSTREAM_SOUL_MD if language and language != "th" else DEFAULT_SOUL_MD

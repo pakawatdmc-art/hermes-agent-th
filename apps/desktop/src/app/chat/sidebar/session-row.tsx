@@ -147,7 +147,7 @@ function SidebarSessionRowImpl({
   ref,
   ...rest
 }: SidebarSessionRowProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const r = t.sidebar.row
   const { cancelPrewarm, notePointerMove, startPrewarm } = useProfilePrewarm(session.profile)
   const title = sessionTitle(session)
@@ -162,7 +162,7 @@ function SidebarSessionRowImpl({
   const timestamp = session.last_active || session.started_at
   const age = formatAge(timestamp, r)
   const timestampDate = new Date(timestamp * 1000)
-  const absoluteAge = formatMessageTimestamp(timestampDate, t.assistant.thread)
+  const absoluteAge = formatMessageTimestamp(timestampDate, t.assistant.thread, locale)
   const handleLabel = `Reorder ${title}`
   // Opt-in row metadata from the sidebar's filter menu. Read from the store
   // rather than threaded as props: the subscription re-renders past the memo

@@ -1,10 +1,33 @@
-import { StrictMode } from 'react'
+import { type ReactNode, StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { ErrorBoundary } from '@/components/error-boundary'
+import { I18nProvider, isSupportedLocaleValue, type Locale } from '@/i18n'
+import { EDITION_DEFAULT_LOCALE } from '@/i18n/edition'
 import { ThemeProvider } from '@/themes/context'
 
 import { QuickEntryApp } from './quick-entry-app'
+
+/** Follow the primary window's profile language without opening another backend. */
+export function QuickEntryLanguageProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocale] = useState<Locale>(EDITION_DEFAULT_LOCALE)
+
+  useEffect(
+    () =>
+      window.hermesDesktop?.quickEntry?.onState(payload => {
+        if (typeof payload.locale === 'string' && isSupportedLocaleValue(payload.locale)) {
+          setLocale(payload.locale)
+        }
+      }),
+    []
+  )
+
+  return (
+    <I18nProvider configClient={null} defaultLocale={EDITION_DEFAULT_LOCALE} initialLocale={locale}>
+      {children}
+    </I18nProvider>
+  )
+}
 
 /**
  * Boot the Quick Entry window. Loaded by the same bundle as the main app but via
@@ -30,7 +53,9 @@ export function mountQuickEntry(): void {
     <StrictMode>
       <ErrorBoundary label="quick-entry">
         <ThemeProvider>
-          <QuickEntryApp />
+          <QuickEntryLanguageProvider>
+            <QuickEntryApp />
+          </QuickEntryLanguageProvider>
         </ThemeProvider>
       </ErrorBoundary>
     </StrictMode>

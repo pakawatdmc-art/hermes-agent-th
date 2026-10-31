@@ -6,6 +6,27 @@ from pathlib import Path
 from typing import Optional
 
 
+def seed_new_profile_config(profile_dir: Path) -> None:
+    """Thai defaults for a fresh profile; clones keep their source's explicit settings."""
+    from hermes_constants import get_hermes_home
+    from hermes_cli.config import atomic_config_write, read_user_config_raw
+    from hermes_cli.config_backend import config_exists
+    from hermes_cli.profile_model_seed import launch_model_seed
+    from hermes_cli.thai_defaults import thai_install_defaults
+
+    config_path = profile_dir / "config.yaml"
+    if config_exists(config_path):
+        return
+    seed = thai_install_defaults()
+    # Retain the existing best-effort model copy: `hermes model` can configure a source
+    # whose settings cannot be read, while the fresh profile still gets its Thai defaults.
+    with contextlib.suppress(Exception):
+        source = get_hermes_home() / "config.yaml"
+        if config_exists(source):
+            seed.update(launch_model_seed(read_user_config_raw(source)))
+    atomic_config_write(config_path, seed)
+
+
 def clone_staging_dir(profile_dir: Path) -> Path:
     """Fresh ``profiles/.<name>.staging-<pid>`` beside the final dir (same filesystem, so the publish
     rename is atomic). A leftover from a crashed create is discarded."""

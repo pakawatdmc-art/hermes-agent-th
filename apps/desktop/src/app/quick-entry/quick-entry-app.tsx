@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef } from 'react'
 
+import { useI18n } from '@/i18n'
 import { isSubmitEnter } from '@/lib/ime'
 import {
   initialQuickComposerState,
@@ -36,6 +37,8 @@ const QUICK_TARGET_OPTION_STYLE = {
  * the primary renderer's normal prompt-submit path.
  */
 export function QuickEntryApp() {
+  const { t } = useI18n()
+  const copy = t.quickEntry
   const inputRef = useRef<HTMLInputElement>(null)
   const submitIdRef = useRef(0)
 
@@ -141,7 +144,7 @@ export function QuickEntryApp() {
             ›
           </span>
           <input
-            aria-label="Quick Entry"
+            aria-label={copy.title}
             autoCapitalize="off"
             autoComplete="off"
             autoCorrect="off"
@@ -162,7 +165,7 @@ export function QuickEntryApp() {
                 dispatch({ type: 'dismiss' })
               }
             }}
-            placeholder={state.connected ? 'Ask Hermes…' : 'Not connected — open Hermes to reconnect'}
+            placeholder={state.connected ? copy.ask : copy.disconnected}
             ref={inputRef}
             spellCheck={false}
             style={{
@@ -189,10 +192,10 @@ export function QuickEntryApp() {
               userSelect: 'none'
             }}
           >
-            Send to
+            {copy.sendTo}
           </label>
           <select
-            aria-label="Target session"
+            aria-label={copy.targetSession}
             disabled={!state.connected}
             id="quick-entry-target"
             onChange={event => dispatch({ target: event.target.value, type: 'target' })}
@@ -214,10 +217,10 @@ export function QuickEntryApp() {
             value={state.target}
           >
             <option style={QUICK_TARGET_OPTION_STYLE} value={QUICK_TARGET_CURRENT}>
-              Current chat
+              {copy.currentChat}
             </option>
             <option style={QUICK_TARGET_OPTION_STYLE} value={QUICK_TARGET_NEW}>
-              New session
+              {copy.newSession}
             </option>
             {state.sessions.map(session => (
               <option key={session.id} style={QUICK_TARGET_OPTION_STYLE} value={session.id}>
@@ -228,7 +231,12 @@ export function QuickEntryApp() {
         </div>
         {state.error ? (
           <div role="alert" style={{ color: 'var(--destructive, #ef4444)', fontSize: 11 }}>
-            {state.error}
+            <p>{copy.deliveryUnconfirmed}</p>
+            <p>{copy.deliveryHint}</p>
+            <details>
+              <summary>{t.install.technicalDetails}</summary>
+              <p>{state.error}</p>
+            </details>
           </div>
         ) : null}
       </div>

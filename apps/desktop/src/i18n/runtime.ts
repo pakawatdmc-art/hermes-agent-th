@@ -1,11 +1,12 @@
 import { isRecord } from '@hermes/shared/i18n'
 import { atom } from 'nanostores'
 
+import { EDITION_DEFAULT_LOCALE } from './edition'
 import { DEFAULT_LOCALE } from './languages'
 import { resolveTranslations } from './registry'
 import type { Locale, Translations } from './types'
 
-const $runtimeLocale = atom<Locale>(DEFAULT_LOCALE)
+const $runtimeLocale = atom<Locale>(EDITION_DEFAULT_LOCALE)
 
 /** The language `display.language` asked for, normalized but NOT yet checked
  *  against what the app can render. A pack-only language (`pl`) lands here

@@ -6,6 +6,8 @@ so ``hermes_cli.auth.<name>`` patches still intercept (and no import cycle).
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import logging
 import hashlib
 import json
@@ -91,7 +93,7 @@ def _format_nous_entitlement_auth_error(error: AuthError) -> str:
     with suppress(Exception):
         if message := _portal_entitlement_message("Nous model access"):
             return message
-    return f"{error} Check credits or billing in Nous Portal, then retry."
+    return t("cli.auth.nous_billing_hint", detail=str(error))
 
 
 def _migrate_stale_nous_portal_url(providers: dict[str, Any]) -> None:
@@ -1425,12 +1427,12 @@ def _nous_device_code_login(
     verify: bool | str = False if insecure else (ca_bundle if ca_bundle else True)
     if _is_remote_session():
         open_browser = False
-    print(f"Starting Hermes login via {pconfig.name}...")
-    print(f"Portal: {portal_base_url}")
+    print(t("cli.auth.provider_start", provider=pconfig.name))
+    print(t("cli.auth.portal_url", url=portal_base_url))
     if insecure:
-        print("TLS verification: disabled (--insecure)")
+        print(t("cli.auth.tls_disabled"))
     elif ca_bundle:
-        print(f"TLS verification: custom CA bundle ({ca_bundle})")
+        print(t("cli.auth.tls_custom", path=ca_bundle))
     with _nous_http_client(timeout_seconds, verify) as client:
         device_data = _request_device_code(
             client=client, portal_base_url=portal_base_url, client_id=client_id, scope=scope)
@@ -1446,7 +1448,7 @@ def _nous_device_code_login(
             with suppress(Exception):
                 on_verification(verification_url, user_code)
         effective_interval = max(1, min(interval, DEVICE_AUTH_POLL_INTERVAL_CAP_SECONDS))
-        print(f"Waiting for approval (polling every {effective_interval}s)...")
+        print(t("cli.auth.waiting_approval", seconds=effective_interval))
         token_data = _poll_for_token(
             client=client, portal_base_url=portal_base_url, client_id=client_id,
             device_code=str(device_data["device_code"]), expires_in=expires_in,
@@ -1456,7 +1458,7 @@ def _nous_device_code_login(
     resolved_inference_url = (
         _optional_base_url(token_data.get("inference_base_url")) or requested_inference_url)
     if resolved_inference_url != requested_inference_url:
-        print(f"Using portal-provided inference URL: {resolved_inference_url}")
+        print(t("cli.auth.inference_url", url=resolved_inference_url))
     auth_state = {
         "portal_base_url": portal_base_url, "inference_base_url": resolved_inference_url,
         "client_id": client_id, "scope": token_data.get("scope") or scope,
@@ -1474,9 +1476,9 @@ def _nous_device_code_login(
             portal_url = auth_state.get("portal_base_url", DEFAULT_NOUS_PORTAL_URL).rstrip("/")
             print()
             print(format_auth_error(exc))
-            print(f"  Subscribe here: {portal_url}/billing")
+            print(t("cli.auth.subscribe_url", portal=portal_url))
             print()
-            print("After subscribing, run `hermes model` again to finish setup.")
+            print(t("cli.auth.after_subscribing"))
             raise SystemExit(1)
         raise
 
@@ -1595,9 +1597,7 @@ def _pick_nous_model_after_login(
         # Window plans: every model is usable; the plan's featured picks lead the list.
         if _usage is not None:
             model_ids = featured_first(model_ids, _usage.featured_model_ids)
-        print(
-            f"Showing {len(model_ids)} curated models — "
-            "use \"Enter custom model name\" for others.")
+        print(t("cli.auth.curated_models", count=len(model_ids)))
         return _prompt_model_selection(
             model_ids, pricing=pricing, unavailable_models=unavailable_models, portal_url=_portal,
             unavailable_message=unavailable_message, confirm_provider="nous",
@@ -1605,10 +1605,10 @@ def _pick_nous_model_after_login(
             usage=_usage)
     if unavailable_models:
         _url = (_portal or DEFAULT_NOUS_PORTAL_URL).rstrip("/")
-        print("No free models currently available.")
-        print(unavailable_message or f"Upgrade at {_url} to access paid models.")
+        print(t("cli.auth.no_free_models"))
+        print(unavailable_message or t("cli.auth.upgrade_models", url=_url))
     else:
-        print("No curated models available for Nous Portal.")
+        print(t("cli.auth.no_curated_models"))
     return None
 
 
@@ -1630,14 +1630,14 @@ def _offer_shared_nous_import(timeout_seconds: float) -> Optional[dict[str, Any]
     except RuntimeError:
         shared_path = None
     print()
-    print(f"Found existing Nous OAuth credentials at {shared_path}" if shared_path
-          else "Found existing shared Nous OAuth credentials")
-    if not _prompt_yes_no("Import these credentials? [Y/n]: ", default="y"):
+    print(t("cli.auth.nous_shared_found_path", path=shared_path) if shared_path
+          else t("cli.auth.nous_shared_found"))
+    if not _prompt_yes_no(t("cli.auth.import_credentials"), default="y"):
         return None
-    print("Rehydrating Nous session from shared credentials...")
+    print(t("cli.auth.nous_restore"))
     auth_state = _try_import_shared_nous_state(timeout_seconds=timeout_seconds)
     if auth_state is None:
-        print("Could not refresh shared credentials — falling back to device-code login.")
+        print(t("cli.auth.nous_restore_failed"))
     return auth_state
 
 
@@ -1687,8 +1687,8 @@ def _login_nous(args, pconfig: ProviderConfig) -> None:
         from hermes_cli.anon_auth import settle_after_upgrade
         settle_after_upgrade(auth_state)  # a config left on the free tier's route moves to the account
         print()
-        print("Login successful!")
-        print(f"  Auth state: {saved_to}")
+        print(t("cli.auth.login_success"))
+        print(t("cli.auth.auth_state", path=saved_to))
         for line in (line for view in handoff for line in result_lines(view)):
             print(f"  {line}")
         # Pick the model BEFORE writing the provider to config.yaml so config is never half-updated.
@@ -1698,25 +1698,25 @@ def _login_nous(args, pconfig: ProviderConfig) -> None:
         except Exception as exc:
             message = format_auth_error(exc) if isinstance(exc, AuthError) else str(exc)
             print()
-            print(f"Login succeeded, but could not fetch available models. Reason: {message}")
+            print(t("cli.auth.model_fetch_failed", detail=message))
         # No model (Skip, fetch failed, nothing curated): keep the previous provider rather than
         # switch to Nous with a mismatched model; the Nous tokens stay saved for future use.
         if not selected_model:
             _restore_active_provider(prior_active_provider)
             print()
-            print("No provider change. Nous credentials saved for future use.")
-            print("  Run `hermes model` again to switch to Nous Portal.")
+            print(t("cli.auth.nous_provider_unchanged"))
+            print(t("cli.auth.nous_switch_hint"))
             return
         config_path = _update_config_for_provider(
             "nous", inference_base_url, default_model=selected_model)
         _save_model_choice(selected_model)
-        print(f"Default model set to: {selected_model}")
+        print(t("cli.auth.default_model", model=selected_model))
         from hermes_cli.model_picker_usage import large_model_notice
         if _notice := large_model_notice(selected_model, "nous"):
             print(f"  ⚠ {_notice}")  # window plans only (a Large mark exists only on their catalog)
-        print(f"  Config updated: {config_path} (model.provider=nous)")
+        print(t("cli.auth.config_updated", path=config_path, provider="nous"))
     except KeyboardInterrupt:
-        print("\nLogin cancelled.")
+        print("\n" + t("cli.auth.login_cancelled"))
         raise SystemExit(130)
     except Exception as exc:
         from hermes_cli.auth_error_copy import sign_in_failure_lines

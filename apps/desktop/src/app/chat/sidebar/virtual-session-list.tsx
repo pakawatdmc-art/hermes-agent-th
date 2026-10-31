@@ -82,7 +82,7 @@ export const VirtualSessionList: FC<VirtualSessionListProps> = ({
   showProfileTags = false,
   sortable
 }) => {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const dividerLabels = t.sidebar.dateDivider
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const density = useStore($sessionListDensity)
@@ -134,7 +134,7 @@ export const VirtualSessionList: FC<VirtualSessionListProps> = ({
 
     // Dividers are non-sortable, self-measured rows interleaved with sessions.
     if (row.kind === 'divider') {
-      const label = 'label' in row ? row.label : sessionBucketLabel(row.bucket, dividerLabels)
+      const label = 'label' in row ? row.label : sessionBucketLabel(row.bucket, dividerLabels, locale)
       const open = dividerToggle?.open(row.key) ?? true
 
       return (

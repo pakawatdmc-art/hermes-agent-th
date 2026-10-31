@@ -33,7 +33,7 @@ import hermes_yaml as yaml
 from hermes_cli.cli_output import line_input
 from hermes_cli.colors import Colors, color
 from hermes_cli import managed_scope
-from hermes_cli.default_soul import DEFAULT_SOUL_MD, is_legacy_template_soul
+from hermes_cli.default_soul import DEFAULT_SOUL_MD, is_legacy_template_soul, legacy_upgrade_soul
 from hermes_cli.left_core_migration import profile_env_names as _left_core_profile_env
 from hermes_cli.secret_prompt import masked_secret_prompt
 # Managed-mode, container and HERMES_UID/GID policy live in hermes_constants (import-safe);
@@ -528,6 +528,7 @@ def _ensure_default_soul_md(home: Path) -> None:
     """Seed DEFAULT_SOUL_MD on first run; upgrade a legacy comment-only scaffold in place.
     A SOUL.md the user actually customized is never touched."""
     soul_path = home / "SOUL.md"
+    template = DEFAULT_SOUL_MD
     if soul_path.exists():
         try:
             existing = soul_path.read_text(encoding="utf-8-sig")
@@ -535,21 +536,18 @@ def _ensure_default_soul_md(home: Path) -> None:
             return
         if not is_legacy_template_soul(existing):
             return
+        template = legacy_upgrade_soul(home)
     try:
-        soul_path.write_text(DEFAULT_SOUL_MD, encoding="utf-8")
+        soul_path.write_text(template, encoding="utf-8")
     except OSError:
         if not soul_path.is_symlink():
             raise
-        # A symlink the seed cannot write through — cyclic (``SOUL.md -> SOUL.md``, ELOOP) or
-        # dangling into a missing directory (ENOENT) — can never hold an identity file, and the
-        # OSError became HomeInitializationError on EVERY boot (launchd exit-75 relaunch storm,
-        # #114592). Seed the default IN PLACE OF the link, never through it; mkstemp + replace
-        # keeps concurrent gateway boots off one shared path. A working link is never reached
-        # here: the write above succeeds through it.
+        # Replace broken links in place so concurrent gateway boots never write through them
+        # or loop forever on an unavailable identity (#114592).
         fd, tmp_name = tempfile.mkstemp(prefix=".SOUL.md.", suffix=".seed", dir=str(home))
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                handle.write(DEFAULT_SOUL_MD)
+                handle.write(template)
             os.replace(tmp_name, soul_path)
         except OSError:
             with suppress(OSError):

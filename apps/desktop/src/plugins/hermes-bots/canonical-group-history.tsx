@@ -38,12 +38,14 @@ function eventAuthor(event: CanonicalGroupEvent, roster: Map<string, CanonicalRo
 }
 
 function EventTime({ timestamp }: { timestamp?: number }) {
+  const { locale } = sdk.useI18n()
+
   if (typeof timestamp !== 'number') {return null}
   const at = new Date(timestamp * 1000)
 
   if (!Number.isFinite(at.getTime())) {return null}
 
-  return <time className="text-[0.625rem] text-(--ui-text-quaternary)" dateTime={at.toISOString()}>{sdk.relativeTime(at.getTime())}</time>
+  return <time className="text-[0.625rem] text-(--ui-text-quaternary)" dateTime={at.toISOString()}>{sdk.relativeTime(at.getTime(), undefined, locale)}</time>
 }
 
 function EventBody({ event, notice }: { event: CanonicalGroupEvent; notice?: string }) {

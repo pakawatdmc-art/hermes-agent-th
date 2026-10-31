@@ -1039,7 +1039,7 @@ function ModelFamilyRow({
   const { name, tag } = modelDisplayParts(family.id)
   const decoration = useModelMenuRowDecoration({ label: name, model: family.id, provider: provider.slug })
   const caps = provider.capabilities?.[family.id]
-  const limit = familyLimit(provider, family, isCurrent)
+  const limit = familyLimit(provider, family, isCurrent, locale)
 
   // Live per-model $/Mtok pricing (Nous Portal and other providers that ship
   // it). A `-fast` sibling shares the base id's price: the collapsed row
@@ -1250,10 +1250,11 @@ function ModelChip({ children, setting = false }: { children: ReactNode; setting
 function familyLimit(
   provider: ModelOptionProvider,
   family: ModelFamily,
-  isCurrent: boolean
+  isCurrent: boolean,
+  locale: string
 ): { reset: null | string; tone?: string } {
   const ms = modelResetMs(provider, family.id) ?? (family.fastId ? modelResetMs(provider, family.fastId) : null)
-  const reset = ms === null ? null : formatReset(ms)
+  const reset = ms === null ? null : formatReset(ms, undefined, locale)
   // Window plans: a model a full allowance stops dims too; the limit line under the provider says why.
   const dim = !isCurrent && (reset !== null || accountResetMs(provider) !== null || planBlocks(provider, family.id))
 

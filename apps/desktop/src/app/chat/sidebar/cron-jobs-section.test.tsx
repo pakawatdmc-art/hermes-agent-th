@@ -38,7 +38,7 @@ const run = (over: Partial<SessionInfo>): SessionInfo =>
     ...over
   }) as SessionInfo
 
-const runLabel = (row: SessionInfo) => fmtDayTime.format(new Date((row.last_active || row.started_at) * 1000))
+const runLabel = (row: SessionInfo) => fmtDayTime.format(new Date((row.last_active || row.started_at) * 1000), 'en')
 
 beforeEach(() => {
   $cronRunReadOnlyVerdicts.set(new Map())

@@ -700,6 +700,7 @@ function GroupExecutionGate(props: GroupChatWorkspaceProps) {
 
 function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: GroupChatWorkspaceProps) {
   const b = useBots()
+  const { locale } = useI18n()
   const rooms: Record<string, GroupChatRoom> = useValue($groupChats)
   const allMeta: Record<string, BotMeta> = useValue($botMeta)
 
@@ -1135,7 +1136,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
           {summaryActivity ? (
             <span
               className={cn('min-w-0 flex-1 truncate', groupActivityTone(summaryActivity.kind))}
-            >{`${groupActivityLabel(summaryActivity, group)} · ${relativeTime(summaryActivity.at)}`}</span>
+            >{`${groupActivityLabel(summaryActivity, group)} · ${relativeTime(summaryActivity.at, undefined, locale)}`}</span>
           ) : null}
         </RowButton>
         {room.running ? (
@@ -1164,7 +1165,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
                 <span className={cn('min-w-0 flex-1 truncate', groupActivityTone(event.kind))}>
                   {groupActivityLabel(event, group)}
                 </span>
-                <span className="shrink-0 text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(event.at)}</span>
+                <span className="shrink-0 text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(event.at, undefined, locale)}</span>
                 {room.running && event.kind === 'working' ? (
                   <Tip label={b.group.stopHint}>
                     <Button
@@ -1348,7 +1349,6 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
     }
   }
 
-  // One log entry, rendered exactly as before conversation folding existed.
   const renderEntry = (entry: GroupMessage, index: number) => {
     const isUser = entry.from.kind === 'user'
     const meta = groupTranscriptSpeakerMeta(entry, members, allMeta)
@@ -1428,7 +1428,7 @@ function LegacyGroupChatWorkspace({ group, members, onBack, visible = true }: Gr
                 </Button>
               </Tip>
             )}
-            <span className="text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(entry.at)}</span>
+            <span className="text-[0.625rem] text-(--ui-text-quaternary)">{relativeTime(entry.at, undefined, locale)}</span>
             {entry.text.trim() || !isUser ? (
               <div className="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
                 {isUser ? null : (

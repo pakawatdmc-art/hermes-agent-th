@@ -8,6 +8,8 @@ own ``model_setup_flows_*`` modules.
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import contextlib
 import argparse
 import os
@@ -209,15 +211,15 @@ def _nous_model_catalog(free_tier: bool, portal_url: str, model_ids: list, prici
         model_ids, unavailable_models = partition_nous_models_by_tier(model_ids, pricing, free_tier=True)
 
     if not model_ids and not unavailable_models:
-        print("No models available for Nous Portal after filtering.")
+        print(t("cli.auth.nous_no_models_after_filter"))
         _note_setup_failure("no_models")
         return None
     if free_tier and not model_ids:
-        print("No free models currently available.")
+        print(t("cli.auth.no_free_models"))
         if unavailable_models:
             from hermes_cli.auth import DEFAULT_NOUS_PORTAL_URL
             _url = (portal_url or DEFAULT_NOUS_PORTAL_URL).rstrip("/")
-            print(unavailable_message or f"Upgrade at {_url} to access paid models.")
+            print(unavailable_message or t("cli.auth.upgrade_models", url=_url))
         return None
     return model_ids, pricing, unavailable_models, unavailable_message, _policy_narrowed
 
@@ -234,14 +236,14 @@ def _nous_verified_credentials(creds_or_none=None):
         relogin = isinstance(exc, AuthError) and exc.relogin_required
         msg = format_auth_error(exc) if isinstance(exc, AuthError) else str(exc)
         if relogin:
-            _say(f"Session expired: {msg}", "Re-authenticating with Nous Portal...\n")
+            _say(t("cli.auth.nous_session_expired", detail=msg), t("cli.auth.nous_reauthenticating") + "\n")
             try:
                 _login_nous(_nous_login_args(None), PROVIDER_REGISTRY["nous"])
             except Exception as login_exc:
-                print(f"Re-login failed: {login_exc}")
+                print(t("cli.auth.nous_relogin_failed", detail=str(login_exc)))
             _note_setup_failure("auth")
             return None
-        print(f"Could not verify credentials: {msg}")
+        print(t("cli.auth.nous_verify_failed", detail=msg))
         _note_setup_failure("auth")
         return None
 
@@ -287,7 +289,7 @@ def _model_flow_nous(config, current_model="", args=None):
     from hermes_cli import anon_auth
     # A free tier with no inference here signs in like no account; its apps move to the account after.
     if not state or not state.get("access_token") or anon_auth.guest_without_free_tier(state):
-        _say("Not logged into Nous Portal. Starting login...", "")
+        _say(t("cli.auth.model_start_login", provider="Nous Portal"), "")
 
         def _login_then_offer_gateway(login_args, pconfig):
             _login_nous(login_args, pconfig)
@@ -305,7 +307,7 @@ def _model_flow_nous(config, current_model="", args=None):
     from hermes_cli.models_pricing import get_pricing_for_provider
     model_ids = get_curated_nous_model_ids()
     if not model_ids:
-        print("No curated models available for Nous Portal.")
+        print(t("cli.auth.no_curated_models"))
         return
 
     # Verify credentials are still valid (catches expired sessions early)
@@ -343,7 +345,7 @@ def _model_flow_nous(config, current_model="", args=None):
     # Window plans: every model is usable; the plan's featured picks lead the list.
     if _usage is not None:
         model_ids = featured_first(model_ids, _usage.featured_model_ids)
-    print(f'Showing {len(model_ids)} curated models — use "Enter custom model name" for others.')
+    print(t("cli.auth.curated_models", count=len(model_ids)))
 
     selected = _prompt_model_selection(
         model_ids, current_model=current_model, pricing=pricing, unavailable_models=unavailable_models,
@@ -351,10 +353,10 @@ def _model_flow_nous(config, current_model="", args=None):
         confirm_base_url=creds.get("base_url", ""), confirm_api_key=creds.get("api_key", ""),
         usage=_usage)
     if not selected:
-        print("No change.")
+        print(t("cli.setup.provider.no_change"))
         return
     config = _nous_persist_selection(selected, creds)
-    print(f"Default model set to: {selected} (via Nous Portal)")
+    print(t("cli.auth.selected_model_provider", model=selected, provider="Nous Portal"))
     if _usage is not None:
         from hermes_cli.model_picker_usage import large_model_notice
         if _notice := large_model_notice(selected, "nous"):
@@ -394,7 +396,8 @@ def _model_flow_openai_codex(config, current_model=""):
         codex_models, current_model=current_model, confirm_provider="openai-codex",
         confirm_base_url=_codex_base or DEFAULT_CODEX_BASE_URL, confirm_api_key=_codex_token or "")
     _activate_provider_model(selected, "openai-codex", DEFAULT_CODEX_BASE_URL,
-                             f"Default model set to: {selected} (via OpenAI Codex)")
+                            t("cli.auth.selected_model_provider", model=selected, provider="OpenAI Codex"),
+                            no_change=t("cli.setup.provider.no_change"))
 
 
 def _model_flow_xai_oauth(_config, current_model="", *, args=None):

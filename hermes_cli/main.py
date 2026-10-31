@@ -47,6 +47,8 @@ if _bootstrap_root not in sys.path:
 from hermes_cli import _startup_fast
 import itertools
 
+from agent.i18n import t
+
 # A literal ``~``/``$VAR`` in HERMES_HOME (fish, or any quoted value) must become absolute
 # before the first reader — otherwise it resolves against cwd and scaffolds <cwd>/~/.hermes.
 _startup_fast.normalize_hermes_home_env()
@@ -836,6 +838,7 @@ from hermes_cli.main_provider_setup import (
     _offer_reasoning_after_pick,
     _prompt_main_reasoning_effort,
     _prompt_provider_choice,
+    _pick_provider,
     _remove_custom_provider,
 )
 # Frozen external updater API: old in-memory siblings still import these names
@@ -1854,7 +1857,7 @@ def cmd_model(args):
         try:
             from hermes_cli.models import clear_provider_models_cache
             clear_provider_models_cache()
-            print("  Cleared model picker cache.")
+            print(t("cli.setup.provider.cache_cleared"))
         except Exception:
             pass
     from hermes_cli.observability.shared_metrics_setup import provider_setup_surface
@@ -1862,7 +1865,8 @@ def cmd_model(args):
 
     with provider_setup_surface("cli_model"):
         run_setup_action_with_navigation(
-            "Model & Provider", lambda: select_provider_and_model(args=args), cancelled_message="No change.",
+            t("cli.setup.model_provider"), lambda: select_provider_and_model(args=args),
+            cancelled_message=t("cli.setup.provider.no_change"),
         )
 
 
@@ -1932,9 +1936,8 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
                 )
         else:
             from hermes_cli.left_core_migration import provider_install_hint
-            hint = provider_install_hint(effective_provider) or ("Check 'hermes model' for available providers, or run "
-                                                                  "'hermes doctor' to diagnose config issues.")
-            print(f"Warning: Unknown provider '{effective_provider}'. {hint} Falling back to auto provider detection.")
+            hint = provider_install_hint(effective_provider) or t("cli.setup.provider.diagnose")
+            print(t("cli.setup.provider.unknown", provider=effective_provider, hint=hint))
     if not active:
         try:
             active = resolve_provider("auto")
@@ -1942,9 +1945,9 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
             if exc.code == "no_provider_configured":
                 # The picker that is about to open IS the fix; a warning that says
                 # "run `hermes model`" from inside `hermes model` is circular.
-                print("No provider is set up yet — pick one below. (Nous Portal works without an API key.)")
+                print(t("cli.setup.provider.choose_first"))
             elif effective_provider == "auto":
-                print(f"Warning: {format_auth_error(exc)} Falling back to auto provider detection.")
+                print(t("cli.setup.provider.detect_warning", error=format_auth_error(exc)))
             active = None  # no provider yet; default to first in list
 
     # Detect custom endpoint
@@ -1953,30 +1956,6 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
     return active
 
 
-def _pick_provider(config, active, provider_labels, custom_provider_map):
-    """Provider picker (+ group member sub-picker) -> concrete slug, or None on cancel."""
-    # Group rows drill into a member sub-picker that resolves back to a
-    # concrete slug, so the flow dispatch is unchanged.
-    ordered, default_idx = _build_provider_picker_rows(
-        config, active, provider_labels, custom_provider_map
-    )
-    provider_idx = _prompt_provider_choice(
-        [label for _, label, _ in ordered],
-        default=default_idx,
-    )
-    if provider_idx is None or ordered[provider_idx][0] == "cancel":
-        return None
-    selected_key, group_label, selected_members = ordered[provider_idx]
-    if not selected_members:
-        return selected_key
-    # Default to the active member when it lives in this group. The group row
-    # carries the descriptive text, so member rows show only their short label.
-    member_idx = _prompt_provider_choice(
-        [provider_labels.get(m, m) for m in selected_members],
-        default=selected_members.index(active) if active in selected_members else 0,
-        title=f"Select {group_label.split(' ▸', 1)[0]} provider:",
-    )
-    return None if member_idx is None else selected_members[member_idx]
 
 
 def select_provider_and_model(args=None):
@@ -1992,7 +1971,7 @@ def select_provider_and_model(args=None):
     config = load_config()
     model_cfg = config.get("model")
     current_model = model_cfg.get("default", "") if isinstance(model_cfg, dict) else model_cfg
-    current_model = current_model or "(not set)"
+    current_model = current_model or t("cli.setup.provider.not_set")
 
     # Effective provider the same way the CLI resolves it at startup:
     # config.yaml model.provider > env var > auto-detect
@@ -2009,16 +1988,16 @@ def select_provider_and_model(args=None):
     if active and active in _custom_provider_map:
         active_label = _custom_provider_map[active]["name"]
     else:
-        active_label = provider_labels.get(active, active) if active else "none"
+        active_label = provider_labels.get(active, active) if active else t("cli.setup.provider.none")
 
     print()
-    print(f"  Current model:    {current_model}")
-    print(f"  Active provider:  {active_label}")
+    print(t("cli.setup.provider.current_model", model=current_model))
+    print(t("cli.setup.provider.active", provider=active_label))
     print()
 
     selected_provider = _pick_provider(config, active, provider_labels, _custom_provider_map)
     if selected_provider is None:
-        print("No change.")
+        print(t("cli.setup.provider.no_change"))
         return
     if selected_provider == "aux-config":
         _aux_config_menu()
@@ -2047,10 +2026,7 @@ def select_provider_and_model(args=None):
         ):
             provider_info = _named_custom_provider_map(load_config()).get(selected_provider)
             if provider_info is None:
-                print(
-                    "Warning: the selected saved custom provider is no longer available. "
-                    "It may have been removed from config.yaml. No change."
-                )
+                print(t("cli.setup.provider.saved_missing"))
                 return
             _model_flow_named_custom(config, provider_info)
         elif selected_provider == "remove-custom":

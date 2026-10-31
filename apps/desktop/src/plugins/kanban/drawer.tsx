@@ -701,6 +701,7 @@ function FeedTabs({
   running: boolean
 }) {
   const k = useKanban()
+  const { locale } = useI18n()
   const [tab, setTab] = useState<'activity' | 'comments' | 'log' | 'runs'>('comments')
 
   const hasLog = !!log?.exists && !!log.content
@@ -735,7 +736,7 @@ function FeedTabs({
                 <li className="flex flex-col gap-0.5" key={comment.id}>
                   <div className="flex items-baseline gap-2 text-[0.75rem]">
                     <span className="font-medium text-(--ui-text-secondary)">{comment.author}</span>
-                    <span className="text-[0.625rem] text-(--ui-text-quaternary)">{ago(comment.created_at)}</span>
+                    <span className="text-[0.625rem] text-(--ui-text-quaternary)">{ago(comment.created_at, locale)}</span>
                   </div>
                   <TaskMarkdown text={comment.body} />
                 </li>
@@ -759,7 +760,7 @@ function FeedTabs({
                       {extra}
                     </span>
                   )}
-                  <span className="ml-auto shrink-0 text-(--ui-text-quaternary)">{ago(event.created_at)}</span>
+                  <span className="ml-auto shrink-0 text-(--ui-text-quaternary)">{ago(event.created_at, locale)}</span>
                 </li>
               )
             })}
@@ -783,7 +784,7 @@ function FeedTabs({
                       <span className="text-(--ui-text-quaternary)">{duration(run.started_at, run.ended_at)}</span>
                     )}
                     <span className="ml-auto shrink-0 text-(--ui-text-quaternary)">
-                      {ago(run.ended_at ?? run.started_at)}
+                      {ago(run.ended_at ?? run.started_at, locale)}
                     </span>
                   </div>
                   {(run.error || run.summary) && (
@@ -843,6 +844,7 @@ export function TaskDrawer({
   onOpen: (id: string) => void
 }) {
   const k = useKanban()
+  const { locale } = useI18n()
   const qc = useQueryClient()
   const scope = useKanbanScope()
   const slug = useValue($boardSlug)
@@ -963,9 +965,6 @@ export function TaskDrawer({
   // The shared Dialog owns the chrome tokens, focus trap, Esc and outside-click
   // dismissal, and publishes itself as the portal container so the status,
   // assignee, actions and model menus open inside it (no z-index rung needed).
-  // The body box is split into two independently scrolling columns, so it
-  // clips instead of scrolling itself; its height follows the content up to
-  // the cap.
   return (
     <Dialog onOpenChange={open => !open && onClose()} open>
       <DialogContent
@@ -1163,7 +1162,7 @@ export function TaskDrawer({
                     ) : null
                   )}
                 {task.created_by && <MetaRow label={k.metaCreatedBy}>{task.created_by}</MetaRow>}
-                {ago(task.created_at) && <MetaRow label={k.metaCreated}>{ago(task.created_at)}</MetaRow>}
+                {ago(task.created_at, locale) && <MetaRow label={k.metaCreated}>{ago(task.created_at, locale)}</MetaRow>}
                 {running && task.worker_pid ? <MetaRow label={k.metaWorkerPid}>{task.worker_pid}</MetaRow> : null}
                 <EstimateSection id={task.id} />
 

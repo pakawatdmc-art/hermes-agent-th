@@ -18,7 +18,7 @@ import {
   type SidebarListRow,
   toSessionRows
 } from '@/lib/session-date-groups'
-import { sessionBucketLabel } from '@/lib/time'
+import { localeWeekStartDay, sessionBucketLabel } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import {
   $sidebarListGroupIds,
@@ -241,7 +241,7 @@ export function SidebarSessionsSection({
   preserveOrder = pinned,
   card = false
 }: SidebarSessionsSectionProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const showAllSessions = useStore($sidebarShowAllSessions)
   const dividerLabels = t.sidebar.dateDivider
   const statusDividerLabels = t.sidebar.statusDivider
@@ -360,7 +360,7 @@ export function SidebarSessionsSection({
         return renderRow(row.entry.session, draggable, row.entry.branchStem)
       }
 
-      const label = 'label' in row ? row.label : sessionBucketLabel(row.bucket, dividerLabels)
+      const label = 'label' in row ? row.label : sessionBucketLabel(row.bucket, dividerLabels, locale)
       const open = dividerToggle.open(row.key)
 
       return (
@@ -376,7 +376,7 @@ export function SidebarSessionsSection({
         />
       )
     },
-    [dividerLabels, dividerToggle, renderRow]
+    [dividerLabels, dividerToggle, locale, renderRow]
   )
 
   // Sessions inside repos/worktrees are date-ordered and static.
@@ -393,7 +393,7 @@ export function SidebarSessionsSection({
       const rows = groupEntriesByRecency(
         flattenSessionsWithBranches(items),
         undefined,
-        undefined,
+        localeWeekStartDay(locale),
         showAllSessions ? Infinity : 2
       ).map(row => (row.kind === 'divider' ? { ...row, key: `project:${projectId}:${row.key}` } : row))
 
@@ -401,7 +401,7 @@ export function SidebarSessionsSection({
 
       return hideCollapsedGroupRows(ordered, isListGroupOpen).map(row => renderListRow(row, false))
     },
-    [isListGroupOpen, manualOrderIds, renderListRow, showAllSessions]
+    [isListGroupOpen, locale, manualOrderIds, renderListRow, showAllSessions]
   )
 
   // Same as `renderRows`, but with date dividers folded in — used for
@@ -411,11 +411,11 @@ export function SidebarSessionsSection({
     (items: SessionInfo[]) => {
       const entries = flattenSessionsWithBranches(items)
 
-      const rows = grouping === 'date' ? groupEntriesByRecency(entries) : toSessionRows(entries)
+      const rows = grouping === 'date' ? groupEntriesByRecency(entries, undefined, localeWeekStartDay(locale)) : toSessionRows(entries)
 
       return hideCollapsedGroupRows(rows, isListGroupOpen).map(row => renderListRow(row, false))
     },
-    [grouping, isListGroupOpen, renderListRow]
+    [grouping, isListGroupOpen, locale, renderListRow]
   )
 
   // Flat recents as list rows: grouped by recency when enabled, plain otherwise.
@@ -425,7 +425,7 @@ export function SidebarSessionsSection({
   const flatRows: SidebarListRow[] = useMemo(() => {
     const rows =
       grouping === 'date'
-        ? groupEntriesByRecency(displayEntries)
+        ? groupEntriesByRecency(displayEntries, undefined, localeWeekStartDay(locale))
         : grouping === 'status'
           ? groupEntriesByStatus(
               displayEntries,
@@ -435,7 +435,7 @@ export function SidebarSessionsSection({
           : toSessionRows(displayEntries)
 
     return manualOrderIds?.length ? orderRowsWithinGroups(rows, manualOrderIds) : rows
-  }, [grouping, displayEntries, dotStates, manualOrderIds, statusDividerLabels])
+  }, [grouping, displayEntries, dotStates, locale, manualOrderIds, statusDividerLabels])
 
   // Closed date/status buckets keep their divider and drop the sessions under
   // it. Same array when nothing is collapsed so the virtualizer's rows ref

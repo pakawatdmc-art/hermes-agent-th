@@ -46,6 +46,7 @@ import {
   Textarea,
   Tip,
   useGrabScroll,
+  useI18n,
   useMutation,
   useQuery,
   useQueryClient,
@@ -152,7 +153,8 @@ function Meta({ children, icon }: { children: ReactNode; icon: string }) {
 
 function CardFooter({ arc, task }: { arc: ArcState | null; task: KanbanTask }) {
   const k = useKanban()
-  const created = ago(task.created_at)
+  const { locale } = useI18n()
+  const created = ago(task.created_at, locale)
   const links = task.link_counts ? task.link_counts.parents + task.link_counts.children : 0
   const fallback = useDefaultAssignee()
   const orchestrator = useOrchestration()?.resolved_orchestrator_profile ?? ''

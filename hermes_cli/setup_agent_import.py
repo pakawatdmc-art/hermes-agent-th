@@ -17,6 +17,8 @@ import textwrap
 from pathlib import Path
 from typing import NamedTuple, Optional
 
+from agent.i18n import t
+
 PLUGIN = "agent-importers"
 
 
@@ -58,17 +60,16 @@ def offer_agent_import(hermes_home: Path) -> str:
     if not found:
         return ""
     user_home = str(Path.home())
-    print_header("Coming from another agent?", gap=True)
-    context = ("Found on this computer: " + ", ".join(
-        f"{s.label} ({str(p).replace(user_home, '~', 1)})" for s, p in found) + ".",
-        "Hermes can bring over its settings, memories, skills and MCP servers.",
-        "You'll see a preview and confirm before anything changes.")
+    print_header(t("cli.setup.import.title"), gap=True)
+    sources = ", ".join(f"{s.label} ({str(p).replace(user_home, '~', 1)})" for s, p in found)
+    context = (t("cli.setup.import.found", sources=sources),
+               t("cli.setup.import.description"), t("cli.setup.import.preview"))
     _info(*context)
-    names = " or ".join(s.label for s, _ in found) if len(found) <= 2 else "any of them"
+    names = t("cli.setup.import.or").join(s.label for s, _ in found) if len(found) <= 2 else t("cli.setup.import.any")
     # The menu clears the screen, so the question carries what it refers to ("any of them").
-    if not prompt_yes_no(f"Import your setup from {names}?", default=True,
+    if not prompt_yes_no(t("cli.setup.import.question", names=names), default=True,
                          description="\n".join(f"  {w}" for line in context for w in textwrap.wrap(line, 76))):
-        print_info(f"Skipped. Import later with: hermes plugins install {PLUGIN}, then hermes import-agent")
+        print_info(t("cli.setup.import.skipped", plugin=PLUGIN))
         return ""
     picked = _pick_sources(found)
     if not picked or not _ensure_plugin(hermes_home):
@@ -81,10 +82,10 @@ def _pick_sources(found: list[tuple[ImportSource, Path]]) -> list[ImportSource]:
     from hermes_cli.setup import print_info, prompt_checklist
     if len(found) == 1:
         return [found[0][0]]
-    picked = prompt_checklist("Which agents should Hermes import from?", [s.label for s, _ in found],
+    picked = prompt_checklist(t("cli.setup.import.which"), [s.label for s, _ in found],
                               list(range(len(found))))
     if not picked:
-        print_info("Nothing selected, so nothing was imported.")
+        print_info(t("cli.setup.import.none"))
     return [found[i][0] for i in picked]
 
 
@@ -98,8 +99,7 @@ def _ensure_plugin(hermes_home: Path) -> bool:
     from hermes_cli.setup import _info, print_warning
     present = plugin_present(PLUGIN, hermes_home)
     if not present:
-        _info(None, f"Importing is done by the '{PLUGIN}' plugin from the Hermes plugin catalog. "
-                    "Installing it now...")
+        _info(None, t("cli.setup.import.installing", plugin=PLUGIN))
     try:
         if present:
             cmd_enable(PLUGIN)
@@ -112,9 +112,8 @@ def _ensure_plugin(hermes_home: Path) -> bool:
     else:
         if plugin_present(PLUGIN, hermes_home):
             return True
-    verb = "enabled" if present else "installed"
-    print_warning(f"The '{PLUGIN}' plugin could not be {verb}, so nothing was imported. "
-                  f"Try again later with: hermes plugins {'enable' if present else 'install'} {PLUGIN}")
+    command = f"hermes plugins {'enable' if present else 'install'} {PLUGIN}"
+    print_warning(t("cli.setup.import.plugin_failed", plugin=PLUGIN, command=command))
     return False
 
 
@@ -129,7 +128,7 @@ def _run_import(source: ImportSource, hermes_home: Path) -> bool:
     run changed config.yaml or .env, which the setup sections after it read."""
     from hermes_cli.setup import print_header, print_warning
     from tools.environments.local import served_profile_child_env
-    print_header(f"Importing from {source.label}", gap=True)
+    print_header(t("cli.setup.import.running", source=source.label), gap=True)
     before = _snapshot(hermes_home)
     # A home that is not <root>/profiles/<name> is the root: without a selector the child's
     # _apply_profile_override would follow the sticky active_profile into another profile.
@@ -144,6 +143,5 @@ def _run_import(source: ImportSource, hermes_home: Path) -> bool:
     # health: allow HX006 -- interactive child: the user reads its preview and answers its prompts
     if subprocess.run(argv, env=env, check=False).returncode:
         # An install from before the plugin gained this importer, or --from-setup, refuses it (argparse, exit 2).
-        print_warning(f"The {source.label} import did not run. If the error names an invalid choice or "
-                      f"unrecognized arguments, update the plugin first: hermes plugins update {PLUGIN}")
+        print_warning(t("cli.setup.import.failed", source=source.label, plugin=PLUGIN))
     return _snapshot(hermes_home) != before

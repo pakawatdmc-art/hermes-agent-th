@@ -271,7 +271,7 @@ function ModelResults({
   offerCustom: boolean
   search: string
 }): ReactElement {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const copy = t.modelPicker
 
   if (loading) {
@@ -361,7 +361,7 @@ function ModelResults({
           const price = provider.pricing?.[model]
           const locked = unavailable.has(model)
           const resetMs = modelResetMs(provider, model)
-          const resetLabel = resetMs === null ? null : formatReset(resetMs)
+          const resetLabel = resetMs === null ? null : formatReset(resetMs, undefined, locale)
           // Window plans: a model a full allowance stops looks unavailable; the limit line says why, once.
           const dimmed = !locked && (accountLimited || resetLabel !== null || planBlocks(provider, model))
           // Managed local model loading into memory right now: show the

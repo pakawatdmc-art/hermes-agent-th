@@ -16,6 +16,8 @@ Derived from #97058 by @astraltrekkin, re-homed after the ``auth_codex.py`` spli
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import hmac
 import logging
 import secrets
@@ -40,11 +42,6 @@ CODEX_BROWSER_CALLBACK_TIMEOUT_SECONDS = 300.0
 CODEX_LOGIN_FLOWS = ("device_code", "browser")
 CODEX_BROWSER_PORT_BUSY_CODE = "codex_browser_port_busy"
 
-_PORT_BUSY_NOTICE = (
-    f"Port {CODEX_BROWSER_CALLBACK_PORT} is already in use (a Codex CLI sign-in may be running). "
-    "OpenAI only redirects to that port, so falling back to the device-code login.")
-
-
 def _codex_login_flow(args: Any) -> str:
     """``browser`` only when the user asked for it: ``--browser`` or ``auth.codex_login_flow``."""
     if getattr(args, "browser", False):
@@ -54,7 +51,7 @@ def _codex_login_flow(args: Any) -> str:
     flow = str((auth_cfg or {}).get("codex_login_flow", "device_code") if isinstance(auth_cfg, dict) else "device_code")
     flow = flow.strip().lower() or "device_code"
     if flow not in CODEX_LOGIN_FLOWS:
-        print(f"Ignoring unknown auth.codex_login_flow {flow!r} (expected one of {', '.join(CODEX_LOGIN_FLOWS)}).")
+        print(t("cli.auth.codex_unknown_flow", flow=repr(flow), choices=", ".join(CODEX_LOGIN_FLOWS)))
         return "device_code"
     return flow
 
@@ -70,10 +67,10 @@ def codex_oauth_login(args: Any) -> dict[str, Any]:
         except AuthError as exc:
             if exc.code != CODEX_BROWSER_PORT_BUSY_CODE:
                 raise
-            print(_PORT_BUSY_NOTICE)
+            print(t("cli.auth.codex_port_busy", port=CODEX_BROWSER_CALLBACK_PORT))
             print()
-    print("Signing in to OpenAI Codex...")
-    print("(Hermes creates its own session — won't affect Codex CLI or VS Code)")
+    print(t("cli.auth.codex_sign_in"))
+    print(t("cli.auth.codex_separate_session"))
     print()
     return auth_mod._codex_device_code_login()
 
@@ -127,25 +124,25 @@ def _codex_browser_login(
         redirect_uri=redirect_uri, state=state, code_challenge=_pkce_code_challenge(code_verifier))
 
     print()
-    print("Signing in to OpenAI Codex (browser authorization)...")
-    print("(Hermes creates its own session — won't affect Codex CLI or VS Code)")
+    print(t("cli.auth.codex_browser_sign_in"))
+    print(t("cli.auth.codex_separate_session"))
     print()
-    print(f"Open this URL to authorize Hermes:\n  {auth_url}\n")
+    print(t("cli.auth.codex_authorize_url", url=auth_url))
     _print_loopback_ssh_hint(redirect_uri)
     if open_browser and _can_open_graphical_browser():
         try:
             opened = webbrowser.open(auth_url)
         except Exception:
             opened = False
-        print("Browser opened for OpenAI authorization." if opened
-              else "Could not open the browser automatically; use the URL above.")
+        print(t("cli.auth.codex_browser_opened") if opened
+              else t("cli.auth.codex_browser_failed"))
     wait = float(timeout_seconds or CODEX_BROWSER_CALLBACK_TIMEOUT_SECONDS)
-    print(f"Waiting for the OpenAI callback on {redirect_uri} (timeout {int(wait)}s, Ctrl+C to cancel)...")
+    print(t("cli.auth.codex_browser_wait", url=redirect_uri, seconds=int(wait)))
     try:
         callback = _serve_loopback_callback(
             server, result, timeout_seconds=wait, err=_codex_err, timeout_code="codex_browser_callback_timeout")
     except KeyboardInterrupt:
-        print("\nLogin cancelled.")
+        print("\n" + t("cli.auth.login_cancelled"))
         raise SystemExit(130)
 
     if callback.get("error"):
@@ -159,7 +156,7 @@ def _codex_browser_login(
     if not code:
         raise _codex_err("Authorization callback did not carry a code.", "codex_browser_no_code")
 
-    print("Exchanging the authorization code for Codex tokens...")
+    print(t("cli.auth.codex_exchanging"))
     tokens = _codex_browser_exchange_code(code, redirect_uri=redirect_uri, code_verifier=code_verifier)
     return {
         "tokens": {

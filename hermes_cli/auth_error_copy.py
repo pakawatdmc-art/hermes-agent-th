@@ -10,23 +10,18 @@ from __future__ import annotations
 
 from typing import Callable, Sequence, Tuple
 
+from agent.i18n import t
+
 # httpx class names and stdlib bases that mean "the request never got a usable answer".
 _NETWORK_ERROR_TYPES = frozenset({
     "ConnectError", "ConnectTimeout", "ReadTimeout", "PoolTimeout", "WriteTimeout", "TimeoutException",
     "RemoteProtocolError", "ReadError", "ProxyError", "UnsupportedProtocol", "NetworkError",
 })
 
-# OAuth device-flow error codes (RFC 8628 §3.5) -> plain copy. ``{retry}`` is the retry command.
+# OAuth device-flow error codes (RFC 8628 §3.5) -> profile-local catalog keys.
 DEVICE_FLOW_ERROR_COPY = {
-    "expired_token": (
-        "The sign-in code expired before it was approved in the browser. Run `{retry}` to get a new code."),
-    "access_denied": (
-        "Sign-in was declined in the browser. Run `{retry}` to try again, or `hermes model` to pick a "
-        "different provider."),
-    "invalid_grant": (
-        "The sign-in code was not accepted by the server. Run `{retry}` to get a new code."),
-    "invalid_client": (
-        "The server did not recognize this copy of Hermes. Run `hermes update`, then `{retry}` again."),
+    code: f"cli.auth.device_error.{code}"
+    for code in ("expired_token", "access_denied", "invalid_grant", "invalid_client")
 }
 
 
@@ -73,10 +68,10 @@ def device_flow_error(code: str, description: str, *, retry_command: str = "herm
     Unknown codes keep the server's description as the lead (it is the only information available)
     but still name the retry command.
     """
-    lead = DEVICE_FLOW_ERROR_COPY.get(code, "").format(retry=retry_command)
-    if not lead:
-        lead = (f"Sign-in did not complete: {description or 'the server rejected the request'}. "
-                f"Run `{retry_command}` to try again.")
+    key = DEVICE_FLOW_ERROR_COPY.get(code)
+    lead = t(key, retry=retry_command) if key else t(
+        "cli.auth.device_error.unknown", retry=retry_command,
+        description=description or t("cli.auth.server_rejected"))
     details = f"{code}: {description}" if code else description
     return SignInCopyError(f"{lead}\n  Details: {details}" if details else lead, oauth_error_code=code)
 
@@ -103,15 +98,13 @@ def sign_in_failure_lines(
     if isinstance(exc, SignInCopyError):
         return str(exc).splitlines()
     rules: Sequence[_Rule] = (
-        (is_cancelled, "Sign-in was cancelled. Run `{retry}` when you want to try again."),
-        (is_network_error,
-         "Could not sign in: Hermes could not reach {host}. Check your internet connection or proxy, "
-         "then run `{retry}` again."),
+        (is_cancelled, "cli.auth.sign_in_cancelled"),
+        (is_network_error, "cli.auth.sign_in_network"),
     )
     lead = _classify(
         exc, rules,
-        "Could not sign in. Run `{retry}` to try again, or `hermes model` to pick a different provider.")
-    lines = [lead.format(host=service_host, retry=retry_command)]
+        "cli.auth.sign_in_failed")
+    lines = [t(lead, host=service_host, retry=retry_command)]
     if not is_cancelled(exc):
         lines.append(_details_line(exc))
     return lines
@@ -120,18 +113,17 @@ def sign_in_failure_lines(
 def provider_setup_failure_lines(exc: BaseException, *, retry_command: str = "hermes model") -> list:
     """Lines to print when the setup wizard's provider step fails: reason, that nothing was saved,
     and how to retry."""
-    nothing_saved = (
-        "Your provider settings were not changed. Continue the wizard now and run "
-        f"`{retry_command}` afterwards to try again.")
+    nothing_saved = t("cli.auth.provider_unchanged", retry=retry_command)
     if isinstance(exc, SignInCopyError):
         lead, *details = str(exc).splitlines()
-        return [f"Could not finish connecting a provider: {lead[0].lower()}{lead[1:]}", nothing_saved, *details]
+        return [t("cli.auth.provider_failed_detail", detail=f"{lead[0].lower()}{lead[1:]}"),
+                nothing_saved, *details]
     rules: Sequence[_Rule] = (
-        (is_cancelled, "sign-in was cancelled"),
-        (is_network_error, "no internet connection, or the provider could not be reached"),
+        (is_cancelled, "cli.auth.reason_cancelled"),
+        (is_network_error, "cli.auth.reason_network"),
     )
-    reason = _classify(exc, rules, "something went wrong while talking to the provider")
-    lines = [f"Could not finish connecting a provider ({reason}).", nothing_saved]
+    reason = t(_classify(exc, rules, "cli.auth.reason_unknown"))
+    lines = [t("cli.auth.provider_failed", reason=reason), nothing_saved]
     if not is_cancelled(exc):
         lines.append(_details_line(exc))
     return lines

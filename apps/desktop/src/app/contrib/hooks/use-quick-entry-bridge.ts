@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 
+import { useI18n } from '@/i18n'
 import {
   initQuickEntryBridge,
   QUICK_TARGET_CURRENT,
@@ -87,6 +88,7 @@ function sessionOptions(): QuickEntrySessionOption[] {
  * one keystroke would send N prompts.
  */
 export function useQuickEntryBridge({ submitText, submitTextToNewSession }: QuickEntryBridgeParams): void {
+  const { locale } = useI18n()
   const submitTextRef = useRef(submitText)
   submitTextRef.current = submitText
   const submitNewRef = useRef(submitTextToNewSession)
@@ -231,7 +233,7 @@ export function useQuickEntryBridge({ submitText, submitTextToNewSession }: Quic
     }
 
     const push = () => {
-      api.pushState({ connected: $gatewayState.get() === 'open', sessions: sessionOptions() })
+      api.pushState({ connected: $gatewayState.get() === 'open', locale, sessions: sessionOptions() })
     }
 
     push()
@@ -243,5 +245,5 @@ export function useQuickEntryBridge({ submitText, submitTextToNewSession }: Quic
       offGateway()
       offSessions()
     }
-  }, [])
+  }, [locale])
 }

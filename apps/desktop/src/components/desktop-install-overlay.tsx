@@ -60,7 +60,11 @@ interface StageRowProps {
   now: number
 }
 
-function formatStageName(name: string): string {
+function formatStageName(name: string, labels: Record<string, string>): string {
+  if (typeof labels[name] === 'string') {
+    return labels[name]
+  }
+
   // 'system-packages' -> 'System packages'; 'uv' stays 'uv'
   if (name.length <= 3) {
     return name
@@ -144,11 +148,16 @@ function StageRow({ descriptor, result, now }: StageRowProps) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span className={cn('truncate text-sm', state === 'running' ? 'font-medium' : 'text-muted-foreground')}>
-            {formatStageName(descriptor.name)}
+            {formatStageName(descriptor.name, copy.stageLabels)}
           </span>
           {state !== 'running' && <span className="flex size-4 shrink-0 items-center justify-center">{icon}</span>}
         </div>
-        {reason && state !== 'pending' && <p className="mt-0.5 truncate text-xs text-muted-foreground">{reason}</p>}
+        {reason && state !== 'pending' && (
+          <details className="mt-0.5 text-xs text-muted-foreground">
+            <summary>{copy.technicalDetails}</summary>
+            <p className="whitespace-pre-wrap break-words">{reason}</p>
+          </details>
+        )}
       </div>
       <span className="flex-shrink-0 text-xs tabular-nums text-muted-foreground">
         {state === 'running' ? (elapsed ? `${copy.stageStates[state]} · ${elapsed}` : copy.stageStates[state]) : null}
@@ -159,27 +168,33 @@ function StageRow({ descriptor, result, now }: StageRowProps) {
   )
 }
 
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err || 'Unknown error')
+interface InstallFailureProps {
+  error: string
+  stage?: string
 }
 
-/** Split "lead sentence\nDetails: raw" into [lead, raw]; no marker → [text, null]. */
-export function splitFailureDetails(text: string | null): [string, string | null] {
-  const value = (text ?? '').trim()
-  const marker = value.search(/\n?\s*Details:\s*/)
+function InstallFailure({ error, stage }: InstallFailureProps) {
+  const { t } = useI18n()
+  const copy = t.install
+  const lead = stage ? copy.stoppedDuring(formatStageName(stage, copy.stageLabels)) : copy.stoppedBeforeFinish
 
-  if (marker < 0) {
-    return [value, null]
-  }
+  return (
+    <div className="mb-4 flex items-start gap-2 text-sm">
+      <ErrorIcon className="mt-0.5 shrink-0" size="1rem" />
+      <div className="min-w-0">
+        <div className="font-medium text-destructive">{copy.error}</div>
+        <p className="mt-0.5 whitespace-pre-wrap break-words text-foreground/90">{lead}</p>
+        <details className="mt-1 text-xs text-muted-foreground">
+          <summary>{copy.technicalDetails}</summary>
+          <p className="whitespace-pre-wrap break-words font-mono">{error}</p>
+        </details>
+      </div>
+    </div>
+  )
+}
 
-  const lead = value.slice(0, marker).trim()
-
-  const detail = value
-    .slice(marker)
-    .replace(/^\s*Details:\s*/, '')
-    .trim()
-
-  return [lead || value, detail || null]
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err || 'Unknown error')
 }
 
 const EMPTY_STATE: DesktopBootstrapState = {
@@ -590,9 +605,6 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
 
   const totalCount = stages.length
   const failed = Boolean(state.error)
-  // Main writes a plain lead sentence and keeps the raw installer error after
-  // "Details:" (electron/bootstrap-failure-copy.ts); show them as two lines.
-  const [failureLead, failureDetail] = splitFailureDetails(state.error)
   // Count the running stage as half-done so the bar advances *during* a long
   // stage instead of sitting frozen at the last completed step while its logs
   // stream (e.g. "0 of 2" pinned at 0% for the whole first stage).
@@ -622,7 +634,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
               <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                 <span>
                   {copy.progress(completedCount, totalCount)}
-                  {currentStage && copy.currentStage(formatStageName(currentStage))}
+                  {currentStage && copy.currentStage(formatStageName(currentStage, copy.stageLabels))}
                   {currentElapsed && ` (${currentElapsed})`}
                 </span>
                 <span className="tabular-nums">{progressPct}%</span>
@@ -644,18 +656,10 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
           )}
 
           {failed && state.error && (
-            <div className="mb-4 flex items-start gap-2 text-sm">
-              <ErrorIcon className="mt-0.5 shrink-0" size="1rem" />
-              <div className="min-w-0">
-                <div className="font-medium text-destructive">{copy.error}</div>
-                <p className="mt-0.5 whitespace-pre-wrap break-words text-foreground/90">{failureLead}</p>
-                {failureDetail ? (
-                  <p className="mt-1 whitespace-pre-wrap break-words font-mono text-xs text-muted-foreground">
-                    {failureDetail}
-                  </p>
-                ) : null}
-              </div>
-            </div>
+            <InstallFailure
+              error={state.error}
+              stage={stages.find(stage => state.stages[stage.name]?.state === 'failed')?.name}
+            />
           )}
 
           {stages.length > 0 && (

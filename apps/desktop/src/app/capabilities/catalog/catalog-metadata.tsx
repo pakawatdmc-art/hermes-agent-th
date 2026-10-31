@@ -176,7 +176,7 @@ export function CatalogMetadata({ entry, onCategory, onTag, onSearch, onOpen, li
 }
 
 export function CatalogDates({ entry }: { entry: CatalogEntry }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
 
   const dates = [
     { label: t.catalog.addedDate, value: entry.addedAt },
@@ -190,8 +190,8 @@ export function CatalogDates({ entry }: { entry: CatalogEntry }) {
   return (
     <span className="flex flex-wrap gap-x-2 gap-y-1 text-[0.65rem] text-(--ui-text-tertiary)">
       {dates.map(({ label, value }) => (
-        <time dateTime={value} key={label} title={fmtDateTime.format(Date.parse(value))}>
-          {label} {relativeTime(Date.parse(value))}
+        <time dateTime={value} key={label} title={fmtDateTime.format(Date.parse(value), locale)}>
+          {label} {relativeTime(Date.parse(value), undefined, locale)}
         </time>
       ))}
     </span>

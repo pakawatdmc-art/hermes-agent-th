@@ -1,3 +1,4 @@
+import { thQuickEntry } from './th_quick_entry'
 import { thExternalOpenFailedCopy } from './th_surface_external_open_failed'
 import { thPreviewCopy } from './th_surface_preview'
 import { thProfilesCopy } from './th_surface_profiles'
@@ -9,6 +10,7 @@ import type { Translations } from './types'
 
 /** Authored Thai catalog, without an English merge. Coverage tests inspect this object. */
 export const th: Translations = {
+  quickEntry: thQuickEntry,
   ...thExternalOpenFailedCopy,
   ...thSettingsCopy,
   ...thSkillDeepLinkCopy,

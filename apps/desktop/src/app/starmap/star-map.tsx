@@ -3,6 +3,7 @@ import { atom, type WritableAtom } from 'nanostores'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useThemeEpoch } from '@/hooks/use-theme-epoch'
+import { useI18n } from '@/i18n'
 import { createRendererLoopPauseController } from '@/lib/renderer-loop-pause'
 import { createDoubleTapDetector, isSmartZoomWheel } from '@/lib/trackpad-gestures'
 import type { StarmapGraph } from '@/types/hermes'
@@ -62,13 +63,14 @@ function invCineEase(y: number): number {
   return (lo + hi) / 2
 }
 
-function revealText(axis: TimeAxis, reveal: number): string {
+function revealText(axis: TimeAxis, reveal: number, locale: string): string {
   const date = dateAtReveal(axis, reveal)
 
-  return date !== null ? formatDate(date) : `${Math.round(reveal * axis.size)} / ${axis.size}`
+  return date !== null ? formatDate(date, locale) : `${Math.round(reveal * axis.size)} / ${axis.size}`
 }
 
 function RevealLabel({ axis, revealStore }: { axis: TimeAxis; revealStore: WritableAtom<number> }) {
+  const { locale } = useI18n()
   const labelRef = useRef<HTMLSpanElement | null>(null)
 
   const sync = useCallback(
@@ -76,10 +78,10 @@ function RevealLabel({ axis, revealStore }: { axis: TimeAxis; revealStore: Writa
       const el = labelRef.current
 
       if (el) {
-        el.textContent = revealText(axis, reveal)
+        el.textContent = revealText(axis, reveal, locale)
       }
     },
-    [axis]
+    [axis, locale]
   )
 
   useEffect(() => revealStore.subscribe(sync), [revealStore, sync])
@@ -90,7 +92,7 @@ function RevealLabel({ axis, revealStore }: { axis: TimeAxis; revealStore: Writa
 
   return (
     <span className="tabular-nums text-foreground/75" ref={labelRef}>
-      {revealText(axis, revealStore.get())}
+      {revealText(axis, revealStore.get(), locale)}
     </span>
   )
 }

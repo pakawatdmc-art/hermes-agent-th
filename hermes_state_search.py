@@ -190,6 +190,21 @@ def _non_operator_tokens(raw_query: str) -> list[str]:
     return [t for t in raw_query.split() if t.upper() not in _FTS_OPERATORS]
 
 
+def _requires_like_message_search(query: str, role_filter: list[str] | None) -> bool:
+    """Thai words have no required spaces; 1–2 codepoints cannot use the trigram index.
+
+    Explicit tool searches already scan canonical rows because their indexed prefix is bounded.
+    Both routes keep the same Boolean predicates, filters and pagination.
+    """
+    if role_filter and "tool" in role_filter:
+        return True
+    for raw_token in _LIKE_TOKEN_RE.findall(query):
+        token = raw_token.strip('"').strip("*")
+        if len(token) < 3 and any("\u0e00" <= ch <= "\u0e7f" for ch in token):
+            return True
+    return False
+
+
 def _quote_fts_tokens(raw_query: str) -> str:
     """Quote each non-operator token (neutralising FTS5 special characters), keeping AND/OR/NOT."""
     return " ".join(
@@ -1109,6 +1124,8 @@ class SessionSearchMixin:
             sanitized = self._sanitize_fts5_query(query or "")
             if not sanitized:
                 return "empty"
+            if _requires_like_message_search(sanitized, None):
+                return "like_scan_thai_short"
             if not self._contains_cjk(sanitized):
                 return "fts5"
             raw = sanitized.strip('"').strip()
@@ -1201,7 +1218,7 @@ class SessionSearchMixin:
 
     def _search_messages_like_fallback(
         self, query: str, *, limit: int, offset: int, sort: Optional[str], **filters) -> list[dict[str, Any]]:
-        """Search canonical messages while derived FTS state is stale."""
+        """Search canonical messages when an index cannot serve the query."""
         predicate, params, snippet_term = self._compile_like_boolean_query(query)
         if not predicate or snippet_term is None:
             return []
@@ -1301,7 +1318,7 @@ class SessionSearchMixin:
                        after_ts=after_ts, before_ts=before_ts)
         # New oversized tool results index only a bounded prefix; an explicit tool-role search is the
         # opt-in full-body path and scans canonical rows via LIKE.
-        if role_filter and "tool" in role_filter:
+        if _requires_like_message_search(query, role_filter):
             matches = self._search_messages_like_fallback(query, limit=limit, offset=offset, sort=sort, **filters)
             return self._finalize_search_matches(matches, result_fields=result_fields)
         self._refresh_fts_stale_state()

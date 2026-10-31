@@ -16,6 +16,7 @@ import { enErrorLayers } from './en_error_layers'
 import { enExternalOpenFailed } from './en_external_open'
 import { enFirstRun } from './en_first_run'
 import { enGatewayHost } from './en_gateway_host'
+import { enInstall } from './en_install'
 import { enLocalModels } from './en_local_models'
 import { enMemoryLayers } from './en_memory_layers'
 import { enModelMenu } from './en_model_menu'
@@ -27,6 +28,7 @@ import { enPluginPreviewAccess } from './en_plugin_preview_access'
 import { enPluginUpdate } from './en_plugin_update'
 import { enPreviewWeb } from './en_preview_web'
 import { enProjects } from './en_projects'
+import { enQuickEntry } from './en_quick_entry'
 import { enSharedMetrics } from './en_shared_metrics'
 import { enThemePicker } from './en_theme_picker'
 import { enUninstallSection } from './en_uninstall_section'
@@ -3833,85 +3835,8 @@ export const en: Translations = {
     versionDetailsUncommittedChanges: 'uncommitted changes'
   },
 
-  install: {
-    stageStates: {
-      pending: 'Pending',
-      running: 'Installing',
-      succeeded: 'Done',
-      skipped: 'Skipped',
-      failed: 'Failed'
-    },
-    oneTimeTitle: 'Hermes needs a one-time install',
-    unsupportedDesc: platform =>
-      `Automated first-launch install isn’t available on ${platform} yet. Open Terminal and run the command below, then relaunch this app. Subsequent launches will skip this step.`,
-    installCommand: 'Install command',
-    copyCommand: 'Copy command',
-    viewDocs: 'View install docs',
-    installTo: 'Will install to',
-    retryAfterRun: 'I’ve run it -- retry',
-    setupChoiceTitle: 'Set up Hermes Desktop',
-    setupChoiceDesc:
-      'Connect this app to a Hermes gateway you already run, or install Hermes locally on this computer.',
-    setupChoiceDescLocal: 'Install Hermes on this computer, or connect to a Hermes gateway you already run.',
-    connectExistingTitle: 'Connect to existing Hermes',
-    connectExistingShort: 'Connect existing',
-    connectExistingDesc: 'Use a remote backend with a session token or browser sign-in. No local install will start.',
-    installLocalTitle: 'Install Hermes locally',
-    installLocalDesc: 'Download Hermes, create its Python environment, and run the backend on this computer.',
-    useLocalTitle: 'Use Hermes on this computer',
-    useLocalDesc: 'A Hermes runtime is already installed here — start it with one click. Nothing downloads.',
-    bundledLocalDesc: 'Use the Hermes runtime included with this app — the bundled backend is the local install.',
-    localStartUnavailable: 'Local installation could not start. Restart Hermes Desktop and try again.',
-    remoteSetupTitle: 'Connect to existing Hermes',
-    remoteSetupDesc: 'Enter your gateway URL. Hermes Desktop will detect whether it needs a token or browser sign-in.',
-    remoteUrlTitle: 'Gateway URL',
-    remoteUrlDesc: 'Use the base URL of the Hermes gateway, including https:// when remote.',
-    remoteUrlPlaceholder: 'https://gateway.example.com/hermes',
-    probing: 'Detecting gateway authentication...',
-    probeError:
-      "Hermes can't reach that address. Check the URL and that the other computer is running Hermes — sign-in options appear once it answers.",
-    probeErrorDetails: 'Details',
-    identityProvider: 'your identity provider',
-    authTitle: 'Authentication',
-    authNeedsOauth: provider => `Sign in with ${provider} before testing this gateway.`,
-    authSignedIn: 'Browser sign-in completed.',
-    connected: 'Connected',
-    signIn: 'Sign in',
-    signInWith: provider => `Sign in with ${provider}`,
-    enterUrlFirst: 'Enter a gateway URL first.',
-    signInIncomplete: 'The sign-in window closed before authentication completed.',
-    tokenTitle: 'Session token',
-    tokenDesc: 'Paste the session token from the remote gateway .env file.',
-    pasteSessionToken: 'Paste session token',
-    incompleteSignInTest: 'Sign in before testing this OAuth-gated gateway.',
-    incompleteTokenTest: 'Enter a session token before testing this gateway.',
-    testConnection: 'Test connection',
-    testSucceeded: (baseUrl, version) => `Connected to ${baseUrl}${version ? ` (${version})` : ''}.`,
-    applyRemote: 'Apply and reconnect',
-    backToSetup: 'Back',
-    failedTitle: 'Installation failed',
-    settingUpTitle: 'Setting up Hermes Agent',
-    finishingTitle: 'Finishing up',
-    failedDesc:
-      'One of the setup steps did not finish. This can happen when another copy of Hermes is running, the internet connection dropped, or antivirus blocked the installer. Close other Hermes windows, then choose Reload and retry. If it fails again, open the logs and send them to support.',
-    activeDesc:
-      'This is a one-time setup. The Hermes installer is downloading dependencies and configuring your machine. Subsequent launches will skip this step.',
-    progress: (completed, total) => `${completed} of ${total} steps complete`,
-    currentStage: stage => ` -- now: ${stage}`,
-    fetchingManifest: 'Fetching installer manifest...',
-    error: 'Error',
-    hideOutput: 'Hide installer output',
-    showOutput: 'Show installer output',
-    lines: count => `${count} line${count === 1 ? '' : 's'}`,
-    noOutput: 'No output yet.',
-    cancelling: 'Cancelling...',
-    cancelInstall: 'Cancel install',
-    transcriptSaved: 'Full transcript saved to',
-    copiedOutput: 'Copied!',
-    copyOutput: 'Copy output',
-    reloadRetry: 'Reload and retry',
-    openLogs: 'Open logs'
-  },
+  install: enInstall,
+  quickEntry: enQuickEntry,
 
   onboarding: enOnboarding,
 

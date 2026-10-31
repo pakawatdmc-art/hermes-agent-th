@@ -132,6 +132,8 @@ export const QUICK_TARGET_NEW = 'new'
  */
 export interface QuickEntryStatePush {
   connected: boolean
+  /** Active primary profile's UI language; absent on an older shell. */
+  locale?: string
   sessions: QuickEntrySessionOption[]
 }
 

@@ -207,7 +207,8 @@ export function useSubscriptionState(enabled = true) {
 export function deriveBillingView(
   stateResult?: BillingResult<BillingStateResponse>,
   subscriptionResult?: BillingResult<SubscriptionStateResponse>,
-  b: Translations['settings']['billing'] = en.settings.billing
+  b: Translations['settings']['billing'] = en.settings.billing,
+  locale = 'en'
 ): BillingView {
   if (!stateResult) {
     return {
@@ -260,13 +261,13 @@ export function deriveBillingView(
   const capable = plansCapable(subscription, subscriptionResult)
   // Computed once and threaded to both the card (caption + undo) and the grid
   // (Scheduled marker), so the two never disagree about what's pending.
-  const pending = pendingTransition(subscription?.current)
+  const pending = pendingTransition(subscription?.current, locale)
   const tiers = derivePlanTiers(subscription, billing.portal_url, capable, pending, b)
 
   return {
     notice: noCardNotice(billing, b),
     paymentRow: paymentMethodRow(billing, b),
-    plan: derivePlanCard(billing, subscription, subscriptionResult, tiers, capable, pending, b),
+    plan: derivePlanCard(billing, subscription, subscriptionResult, tiers, capable, pending, b, locale),
     refillRow: autoReloadRow(billing, b),
     status: 'normal',
     summary: [
@@ -285,7 +286,7 @@ export function deriveBillingView(
     tiers,
     topupRow: buyCreditsRow(billing, b),
     usagePlanName: windowPlanName(billing, subscription),
-    usageRows: deriveUsageRows(billing, subscription, b)
+    usageRows: deriveUsageRows(billing, subscription, b, locale)
   }
 }
 
@@ -337,7 +338,7 @@ export function buildManageSubscriptionUrl(
   return FALLBACK_PORTAL_BILLING_URL
 }
 
-export function formatBillingDate(value?: null | string): string {
+export function formatBillingDate(value?: null | string, locale = 'en'): string {
   if (!value) {
     return EMPTY_BILLING_VALUE
   }
@@ -348,7 +349,7 @@ export function formatBillingDate(value?: null | string): string {
     return EMPTY_BILLING_VALUE
   }
 
-  return fmtDate.format(date)
+  return fmtDate.format(date, locale)
 }
 
 function emptySummary(b: Translations['settings']['billing']): BillingSummaryItemView[] {
@@ -486,14 +487,15 @@ function derivePlanCard(
   tiers: BillingPlanTierView[],
   capable: boolean,
   pending: PendingPlanTransition | undefined,
-  b: Translations['settings']['billing']
+  b: Translations['settings']['billing'],
+  locale: string
 ): BillingPlanCardView {
   const current = subscription?.current
   const tierName = current?.tier_name ?? billing.usage?.plan_name ?? b.state.planCard.freeTier
   // Price resolves against the UNFILTERED catalog so a grandfathered current tier
   // still shows its price.
   const price = findCurrentTier(subscription)?.dollars_per_month_display
-  const renewal = formatBillingDate(current?.cycle_ends_at ?? billing.usage?.renews_at)
+  const renewal = formatBillingDate(current?.cycle_ends_at ?? billing.usage?.renews_at, locale)
   const unavailable = subscriptionResult ? !subscriptionResult.ok : false
 
   const caption = unavailable
@@ -534,20 +536,21 @@ function derivePlanCard(
 // Precedence: a downgrade WINS if both are somehow set — it names a concrete target
 // tier, the stronger, more specific signal, and is what the grid marks.
 function pendingTransition(
-  current: null | undefined | NonNullable<SubscriptionStateResponse['current']>
+  current: null | undefined | NonNullable<SubscriptionStateResponse['current']>,
+  locale: string
 ): PendingPlanTransition | undefined {
   if (current?.pending_downgrade_tier_name && current.pending_downgrade_at) {
     return {
       kind: 'downgrade',
       tierName: current.pending_downgrade_tier_name,
-      when: current.pending_downgrade_display ?? formatBillingDate(current.pending_downgrade_at)
+      when: current.pending_downgrade_display ?? formatBillingDate(current.pending_downgrade_at, locale)
     }
   }
 
   if (current?.cancel_at_period_end && current.cancellation_effective_at) {
     return {
       kind: 'cancellation',
-      when: current.cancellation_effective_display ?? formatBillingDate(current.cancellation_effective_at)
+      when: current.cancellation_effective_display ?? formatBillingDate(current.cancellation_effective_at, locale)
     }
   }
 
@@ -771,7 +774,8 @@ function autoReloadRow(billing: BillingStateResponse, b: Translations['settings'
 function deriveUsageRows(
   billing: BillingStateResponse,
   subscription: null | SubscriptionStateResponse,
-  b: Translations['settings']['billing']
+  b: Translations['settings']['billing'],
+  locale: string
 ): BillingUsageRowView[] {
   const rows: BillingUsageRowView[] = []
   const current = subscription?.current
@@ -813,7 +817,7 @@ function deriveUsageRows(
             }
           : undefined,
       caption: b.state.usage.subscriptionCredits.captionResets(
-        formatBillingDate(current?.cycle_ends_at ?? usage?.renews_at)
+        formatBillingDate(current?.cycle_ends_at ?? usage?.renews_at, locale)
       ),
       id: 'subscription_credits',
       title: b.state.usage.subscriptionCredits.title,
@@ -876,10 +880,7 @@ function deriveUsageRows(
  * server says they pay (`credits_pay`: Keep going on credits is on AND a top-up balance is left; with
  * the setting on and $0 the next request is refused too); otherwise the other included models still work.
  */
-function deriveWindowRows(
-  planUsage: PlanUsage,
-  b: Translations['settings']['billing']
-): BillingUsageRowView[] {
+function deriveWindowRows(planUsage: PlanUsage, b: Translations['settings']['billing']): BillingUsageRowView[] {
   const copy = b.state.usage.window
   const words = { day: copy.today, month: copy.month, top_tier: copy.topTier, week: copy.week }
 

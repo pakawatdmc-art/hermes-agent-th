@@ -57,14 +57,14 @@ function nextRunMs(job: CronJob): null | number {
 // Runs all belong to the same job, so the run name just repeats the job name —
 // the timestamp is what tells them apart. Compact (no year, no seconds) for the
 // narrow sidebar.
-function formatRunTime(seconds?: null | number): string {
+function formatRunTime(seconds: null | number | undefined, locale: string): string {
   if (!seconds) {
     return '—'
   }
 
   const date = new Date(seconds * 1000)
 
-  return Number.isNaN(date.valueOf()) ? '—' : fmtDayTime.format(date)
+  return Number.isNaN(date.valueOf()) ? '—' : fmtDayTime.format(date, locale)
 }
 
 interface SidebarCronJobsSectionProps {
@@ -241,7 +241,7 @@ function CronJobSidebarRow({
   onTogglePeek: () => void
   onTrigger: () => void
 }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const c = t.cron
   const state = jobState(job)
   const next = nextRunMs(job)
@@ -253,7 +253,7 @@ function CronJobSidebarRow({
   const meta = INACTIVE_STATES.has(state)
     ? (c.states[state] ?? state)
     : next !== null
-      ? `${overdue ? `${c.overdueSince.replace(/:$/, '')} ` : ''}${relativeTime(next, nowMs)}`
+      ? `${overdue ? `${c.overdueSince.replace(/:$/, '')} ` : ''}${relativeTime(next, nowMs, locale)}`
       : '—'
 
   // Pause/resume and delete aren't threaded through the sidebar's prop chain, so
@@ -399,7 +399,7 @@ function CronJobSidebarRuns({
   jobId: string
   onOpenRun: (sessionId: string, session?: SessionInfo) => void
 }) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const c = t.cron
   const selectedSessionId = useStore($selectedStoredSessionId)
   const changeEventsAvailable = useStore($changeEventsAvailable)
@@ -470,7 +470,7 @@ function CronJobSidebarRuns({
                 className="truncate rounded-md px-1.5 py-0.5 text-[0.6875rem] text-(--ui-text-secondary) tabular-nums"
                 key={run.id}
               >
-                {formatRunTime(run.last_active || run.started_at)}
+                {formatRunTime(run.last_active || run.started_at, locale)}
               </div>
             ) : (
               // One click to the run's transcript; a run the scheduler never
@@ -486,7 +486,7 @@ function CronJobSidebarRuns({
                 onClick={() => openCronRun(run, onOpenRun)}
                 type="button"
               >
-                {formatRunTime(run.last_active || run.started_at)}
+                {formatRunTime(run.last_active || run.started_at, locale)}
               </button>
             )
           )}

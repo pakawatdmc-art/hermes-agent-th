@@ -4,6 +4,8 @@ per function so test patches on ``hermes_cli.setup`` take effect."""
 
 import contextlib
 import logging
+
+from agent.i18n import t
 import os
 import sys
 from pathlib import Path
@@ -19,9 +21,9 @@ def _blank_slate_done(config: dict, hermes_home, tools_line: str, *extra: str, i
     """Shared Blank Slate epilogue: success banner, the "enable later" hints, then the summary."""
     from hermes_cli.setup import _info, _print_setup_summary, print_success
     print()
-    print_success("Blank Slate setup complete — minimal agent ready.")
-    _info(*([intro] if intro else []), tools_line, "  Seed skills:         hermes skills opt-in --sync",
-          "  Add MCP servers:     hermes mcp add", *extra, "  Tune agent settings: hermes setup agent", None)
+    print_success(t('cli.setup.blank_done'))
+    _info(*([intro] if intro else []), tools_line, t('cli.setup.seed_skills_hint'),
+          t('cli.setup.add_mcp_hint'), *extra, t('cli.setup.agent_hint'), None)
     _print_setup_summary(config, hermes_home)
 
 
@@ -56,12 +58,10 @@ def _run_nous_flow(config: dict, *, context: str, cancel_exc: tuple, cancel_line
 
 def _run_portal_one_shot(config: dict) -> None:
     """One-shot Nous Portal setup (``hermes setup --portal`` / ``hermes portal``)."""
-    from hermes_cli.setup import _info, _print_banner, _record_setup_completed, print_error, print_info, print_success
-    _print_banner("│     ☤ Hermes Setup — Nous Portal (one-shot)             │")
-    _info(None, "  One subscription, 300+ models, plus the Tool Gateway:",
-          "    web search, image generation, TTS, browser automation",
-          "    — all routed through your Nous Portal sub.", None,
-          "  Sign up: https://portal.nousresearch.com/manage-subscription", None)
+    from hermes_cli.setup import _info, print_header, _record_setup_completed, print_error, print_info, print_success
+    print_header(t("cli.setup.portal_title"))
+    _info(None, t("cli.setup.subscription_help"), t("cli.setup.tools_help"),
+          t("cli.setup.portal_routing"), None, t("cli.setup.portal_signup"), None)
 
     def _on_error(exc: Exception) -> None:
         from hermes_cli.auth_error_copy import provider_setup_failure_lines
@@ -72,7 +72,7 @@ def _run_portal_one_shot(config: dict) -> None:
             print_info(f"  {line}")
 
     if not _run_nous_flow(config, context="`hermes portal`", cancel_exc=(KeyboardInterrupt, EOFError, SystemExit),
-                          cancel_lines=(None, "  Setup cancelled.", "  You can retry later with `hermes portal`."),
+                          cancel_lines=(None, t("cli.setup.action_cancelled"), t("cli.setup.portal_retry")),
                           print_error=_on_error):
         return
 
@@ -80,8 +80,8 @@ def _run_portal_one_shot(config: dict) -> None:
     with contextlib.suppress(Exception):
         _reload_config_into(config, dict_only=True)
     print()
-    print_success("Portal setup complete.")
-    _info("  Run `hermes portal info` to inspect routing.", "  Run `hermes` to start chatting.")
+    print_success(t("cli.setup.portal_done"))
+    _info(t("cli.setup.portal_info"), t("cli.setup.start_chat"))
     _record_setup_completed(config)
 
 
@@ -109,21 +109,20 @@ def _keep_imported_model(config: dict, imported_from: str) -> bool:
     label = _imported_model_label(config) if imported_from else ""
     if not label:
         return False
-    print_header("Model & Provider", gap=True)
-    _info(f"Settings were imported from {imported_from}.")
-    return prompt_choice(f"Keep your imported model ({label}) or switch to Nous Portal?", [
-        f"Keep {label}",
-        "Switch to Nous Portal — free OAuth login, 300+ models plus the Tool Gateway",
-    ], 0, description=f"  Settings were imported from {imported_from}.") == 0
+    print_header(t('cli.setup.model_provider'), gap=True)
+    _info(t("cli.setup.imported_from", source=imported_from))
+    return prompt_choice(t("cli.setup.keep_imported_model", label=label), [
+        t("cli.setup.keep_model", label=label), t("cli.setup.switch_nous"),
+    ], 0, description=t("cli.setup.imported_from", source=imported_from)) == 0
 
 
 def _quick_setup_nous_portal(config: dict) -> None:
     """Quick Setup's Nous Portal step: OAuth login + model selection (provider set to "nous" by the save)."""
     from hermes_cli.setup import _info, print_header, print_info, print_warning
     print_header("Nous Portal", gap=True)
-    _info("One subscription, 300+ models, plus the Tool Gateway:",
-          "  web search, image generation, TTS, browser automation.",
-          "Sign up: https://portal.nousresearch.com/manage-subscription", None)
+    _info(t('cli.setup.subscription_help'),
+          t('cli.setup.tools_help'),
+          t("cli.setup.portal_signup"), None)
 
     def _on_error(exc: Exception) -> None:
         from hermes_cli.auth_error_copy import provider_setup_failure_lines
@@ -133,7 +132,7 @@ def _quick_setup_nous_portal(config: dict) -> None:
             print_info(line)
 
     _run_nous_flow(config, context="quick setup", cancel_exc=(KeyboardInterrupt, EOFError),
-                   cancel_lines=(None, "Nous Portal setup cancelled."), print_error=_on_error)
+                   cancel_lines=(None, t('cli.setup.nous_cancelled')), print_error=_on_error)
     # The wizard's later save_config(config) must not clobber the login/model save.
     _reload_config_into(config)
 
@@ -157,8 +156,8 @@ def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool, im
 
     # Step 4: Offer messaging gateway setup
     print()
-    gateway_choice = prompt_choice("Connect a messaging platform? (Telegram, Discord, etc.)", [
-        "Set up messaging now (recommended)", "Skip — set up later with 'hermes setup gateway'",
+    gateway_choice = prompt_choice(t('cli.setup.connect_messaging'), [
+        t('cli.setup.messaging_now'), t('cli.setup.messaging_later'),
     ], 0)
     if gateway_choice == 0:
         setup_gateway(config)
@@ -168,10 +167,10 @@ def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool, im
         from hermes_cli.gateway_setup_service import ensure_gateway_service
         ensure_gateway_service(context="setup", interactive=True, config=config)
     print()
-    print_success("Setup complete! You're ready to go.")
-    _info(None, "  Configure all settings:    hermes setup")
+    print_success(t('cli.setup.done'))
+    _info(None, t('cli.setup.all_settings_hint'))
     if gateway_choice != 0:
-        print_info("  Connect Telegram/Discord:  hermes setup gateway")
+        print_info(t('cli.setup.connect_hint'))
     _print_macos_fda_tip()
     print()
     _print_setup_summary(config, hermes_home)
@@ -194,11 +193,10 @@ def _print_macos_fda_tip() -> None:
         pass
     except OSError:
         return  # indeterminate — don't nag
-    _info(None, "  macOS tip: silence ALL folder permission prompts with one switch —",
-          "  System Settings → Privacy & Security → Full Disk Access → enable",
-          "  your terminal (and Hermes.app if you use Desktop), or run:",
+    _info(None, t("cli.setup.macos_fda_tip"), t("cli.setup.macos_fda_location"),
+          t("cli.setup.macos_fda_app"),
           "    open \"x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles\"",
-          "  The grant is permanent — it survives every Hermes update.")
+          t("cli.setup.macos_fda_persist"))
 
 
 def _blank_slate_minimal_toolsets(config: dict):
@@ -274,23 +272,23 @@ def _run_blank_slate_setup(config: dict, hermes_home, is_existing: bool):
         _info, print_header, print_info, print_success, prompt_choice, save_config, setup_model_provider,
         setup_terminal_backend
     )
-    print_header("Blank Slate Setup", gap=True)
-    _info("Everything starts OFF. First we force-enable only what's required",
-          "to run an agent, then you choose whether to stop there or walk",
-          "through enabling more — opting in to exactly what you want.", "",
-          "Forced on: Provider & Model, File Operations, Terminal, Vision, Skills.",
-          "Everything else (web, browser, code exec, memory,",
-          "delegation, cron, plugins, MCP, …) starts disabled. The",
-          "essential `hermes-agent` skill is always kept so the agent",
-          "can help you drive and configure Hermes itself.", None)
+    print_header(t('cli.setup.blank_title'), gap=True)
+    _info(t('cli.setup.blank_intro1'),
+          t('cli.setup.blank_intro2'),
+          t('cli.setup.blank_intro3'), "",
+          t('cli.setup.blank_essential'),
+          t('cli.setup.blank_extra1'),
+          t('cli.setup.blank_extra2'),
+          t('cli.setup.blank_extra3'),
+          t('cli.setup.blank_extra4'), None)
 
     # Step 1: Provider & Model (REQUIRED — the agent cannot run without it)
-    print_header("Step 1 — Provider & Model (required)")
+    print_header(t('cli.setup.blank_step1'))
     setup_model_provider(config)
     save_config(config)
 
     # Step 2: Terminal backend (where commands run — a core decision)
-    print_header("Step 2 — Terminal Backend")
+    print_header(t('cli.setup.blank_step2'))
     setup_terminal_backend(config)
 
     # Step 3: Lock in the minimal toolset + minimized config knobs
@@ -298,15 +296,15 @@ def _run_blank_slate_setup(config: dict, hermes_home, is_existing: bool):
     _blank_slate_minimize_config(config)
     save_config(config)
     print()
-    print_success("Minimal baseline applied:")
-    print_info("  Toolsets: file, terminal, vision, skills (everything else off)")
-    print_info("  Compression, memory, checkpoints, smart routing: off")
+    print_success(t('cli.setup.minimal_applied'))
+    print_info(t('cli.setup.minimal_tools'))
+    print_info(t('cli.setup.minimal_off'))
 
     # The fork: stop here, or walk through enabling things
-    print_header("How far do you want to go?", gap=True)
-    path = prompt_choice("Your minimal agent is ready. What next?", [
-        "Start with everything disabled — finish now (most minimal)",
-        "Walk through all configurations — opt in to tools, skills, plugins, MCP",
+    print_header(t('cli.setup.blank_continue_title'), gap=True)
+    path = prompt_choice(t('cli.setup.blank_next'), [
+        t('cli.setup.blank_finish'),
+        t('cli.setup.blank_walkthrough'),
     ], 0)
     if path != 0:
         _blank_slate_walkthrough(config, hermes_home)
@@ -315,8 +313,8 @@ def _run_blank_slate_setup(config: dict, hermes_home, is_existing: bool):
     # Blank Slate means no bundled skills; record the opt-out so future `hermes update` runs
     # don't re-inject them.
     _set_bundled_skills_opt_out(True, "skill opt-out")
-    _blank_slate_done(config, hermes_home, "  Enable tools:        hermes tools", "  Enable plugins:      hermes plugins",
-                      intro="Enable anything later, on demand:")
+    _blank_slate_done(config, hermes_home, t('cli.setup.enable_tools'), t('cli.setup.enable_plugins'),
+                      intro=t('cli.setup.enable_later'))
 
 
 def _blank_slate_walkthrough(config: dict, hermes_home):
@@ -325,59 +323,56 @@ def _blank_slate_walkthrough(config: dict, hermes_home):
         _info, print_header, print_info, print_success, print_warning, prompt_yes_no, save_config, setup_gateway,
     )
     # Bundled skills — default to NONE, offer to seed all
-    print_header("Bundled Skills", gap=True)
-    print_info("Blank Slate ships with NO bundled skills by default.")
-    seed_skills = prompt_yes_no("Seed the full bundled skill catalog? (No = start with zero skills)", default=False)
+    print_header(t('cli.setup.bundled_skills'), gap=True)
+    print_info(t('cli.setup.blank_no_skills'))
+    seed_skills = prompt_yes_no(t('cli.setup.seed_skills'), default=False)
 
     def _seeded(result) -> None:
         copied = len(result.get("copied", [])) if isinstance(result, dict) else 0
-        print_success(f"Seeded {copied} bundled skills.")
+        print_success(t("cli.setup.skills_seeded", count=copied))
 
     def _opted_out(_result) -> None:
-        _info("No skills seeded (except the essential `hermes-agent`",
-              "skill). A .no-bundled-skills marker keeps future",
-              "`hermes update` runs from re-injecting them. Opt back in any",
-              "time with `hermes skills opt-in --sync`.")
+        _info(t("cli.setup.skills_opted_out"))
 
     # Seeding first clears any stale opt-out marker; declining sets it (essential skills still seed).
     _set_bundled_skills_opt_out(
         not seed_skills, "skill handling", on_success=_seeded if seed_skills else _opted_out,
-        on_error=lambda exc: print_warning(f"Skill setup step encountered an error: {exc}"),
+        on_error=lambda exc: print_warning(t("cli.setup.skills_error", error=exc)),
     )
 
     # Walk through enabling additional tools
-    print_header("Tools", gap=True)
-    _info("Pick exactly which additional toolsets to turn on.",
-          "(file and terminal are already on; leave the rest off if you want", " the most minimal agent.)")
-    if prompt_yes_no("Open the tool selector to enable more tools?", default=False):
+    print_header(t('cli.setup.tools'), gap=True)
+    _info(t('cli.setup.extra_tools1'),
+          t('cli.setup.extra_tools2'), t('cli.setup.extra_tools3'))
+    if prompt_yes_no(t('cli.setup.open_tools'), default=False):
         try:
             from hermes_cli.tools_config import tools_command
             tools_command(first_install=False, config=config)
             _reload_config_into(config)  # tools_command saves via its own load/save cycle
         except Exception as exc:
             logger.debug("blank-slate tools_command error: %s", exc)
-            print_warning(f"Tool selector encountered an error: {exc}")
+            print_warning(t("cli.setup.tools_error", error=exc))
     else:
-        print_info("Keeping the minimal toolset. Add tools later with `hermes tools`.")
+        print_info(t('cli.setup.keep_minimal'))
 
     # Built-in plugins and MCP servers (off unless chosen)
     for header, question, yes_msg, no_msg in (
-        ("Plugins", "Review and enable built-in plugins now?",
-         "Manage plugins with `hermes plugins list` / `hermes plugins install`.",
-         "No plugins enabled. Add later with `hermes plugins`."),
-        ("MCP Servers", "Add an MCP server now?",
-         "Add servers with `hermes mcp add <name> --url ... | --command ...`.",
-         "No MCP servers configured. Add later with `hermes mcp add`."),
+        (t('cli.setup.plugins'), t('cli.setup.plugins_now'),
+         t('cli.setup.plugins_manage'),
+         t('cli.setup.plugins_none')),
+        (t('cli.setup.mcp'), t('cli.setup.mcp_now'),
+         t('cli.setup.mcp_add'),
+         t('cli.setup.mcp_none')),
     ):
         print_header(header, gap=True)
         print_info(yes_msg if prompt_yes_no(question, default=False) else no_msg)
 
     # Optional messaging gateway
     print()
-    if prompt_yes_no("Connect a messaging platform (Telegram, Discord, …)?", default=False):
+    if prompt_yes_no(t('cli.setup.messaging_optional'), default=False):
         setup_gateway(config)
     save_config(config)
-    _blank_slate_done(config, hermes_home, "  Enable more tools:   hermes tools")
+    _blank_slate_done(config, hermes_home, t('cli.setup.more_tools'))
 
 
 def _run_quick_setup(config: dict, hermes_home):
@@ -387,7 +382,7 @@ def _run_quick_setup(config: dict, hermes_home):
         _prompt_and_save_env_var, _prompt_api_key, _section_rule, prompt_checklist, save_config,
     )
     from hermes_cli.config import (get_missing_env_vars, get_missing_config_fields, check_config_version)
-    print_header("Quick Setup — Missing Items Only", gap=True)
+    print_header(t('cli.setup.missing_title'), gap=True)
 
     # Check what's missing
     missing_env = get_missing_env_vars(required_only=False)
@@ -396,12 +391,12 @@ def _run_quick_setup(config: dict, hermes_home):
     missing_config = get_missing_config_fields()
     current_ver, latest_ver = check_config_version()
     if not (missing_required or missing_optional or missing_config or current_ver < latest_ver):
-        print_success("Everything is configured! Nothing to do.")
-        _info(None, "Run 'hermes setup' and choose 'Full Setup' to reconfigure,",
-              "or pick a specific section from the menu.")
+        print_success(t('cli.setup.nothing_missing'))
+        _info(None, t('cli.setup.reconfigure_hint'),
+              t('cli.setup.specific_section_hint'))
         return
     if missing_required:
-        _info(None, f"{len(missing_required)} required setting(s) missing:")
+        _info(None, t("cli.setup.required_missing", count=len(missing_required)))
         for var in missing_required:
             print(f"     • {var['name']}")
         print()
@@ -410,20 +405,21 @@ def _run_quick_setup(config: dict, hermes_home):
             print(color(f"  {var['name']}", Colors.CYAN))
             print_info(f"  {var.get('description', '')}")
             if var.get("url"):
-                print_info(f"  Get key at: {var['url']}")
-            _prompt_and_save_env_var(var, f"  Saved {var['name']}", f"  Skipped {var['name']}")
+                print_info(t("cli.setup.get_key", url=var["url"]))
+            _prompt_and_save_env_var(var, t("cli.setup.saved_name", name=var["name"]),
+                                     t("cli.setup.skipped_name", name=var["name"]))
     missing_tools = [v for v in missing_optional if v.get("category") == "tool"]
     missing_messaging = [v for v in missing_optional if v.get("category") == "messaging" and not v.get("advanced")]
     if missing_tools:  # checklist, then the API-key screen for each pick
-        print_header("Tool API Keys", gap=True)
+        print_header(t('cli.setup.tool_keys'), gap=True)
         labels = [var.get("description", var["name"]) + (f" → {', '.join(var['tools'][:2])}" if var.get("tools") else "")
                   for var in missing_tools]
-        for idx in prompt_checklist("Which tools would you like to configure?", labels):
+        for idx in prompt_checklist(t('cli.setup.which_tools'), labels):
             _prompt_api_key(missing_tools[idx])
     if missing_messaging:  # checklist, then prompt for each selected platform's vars
-        print_header("Messaging Platforms", gap=True)
-        _info("Connect Hermes to messaging apps to chat from anywhere.",
-              "You can configure these later with 'hermes setup gateway'.")
+        print_header(t('cli.setup.messaging'), gap=True)
+        _info(t('cli.setup.messaging_help'),
+              t('cli.setup.messaging_config_later'))
         # Group by platform in first-seen order; vars matching no platform are dropped.
         grouped: dict[str, list] = {}
         emojis = {}
@@ -434,21 +430,21 @@ def _run_quick_setup(config: dict, hermes_home):
                 emojis[match[0]] = match[1]
         platform_order = list(grouped)
         labels = [f"{emojis[p]} {p}" for p in platform_order]
-        for idx in prompt_checklist("Which platforms would you like to set up?", labels):
+        for idx in prompt_checklist(t('cli.setup.which_platforms'), labels):
             plat = platform_order[idx]
             _section_rule(f"{emojis[plat]} {plat}")
             for var in grouped[plat]:
                 print_info(f"  {var.get('description', '')}")
                 if var.get("url"):
                     print_info(f"  {var['url']}")
-                _prompt_and_save_env_var(var, "  ✓ Saved", "  Skipped")
+                _prompt_and_save_env_var(var, t('cli.setup.saved'), t('cli.setup.skipped'))
                 print()
 
     # Handle missing config fields
     if missing_config:
-        _info(None, f"Adding {len(missing_config)} new config option(s) with defaults...")
+        _info(None, t("cli.setup.adding_defaults", count=len(missing_config)))
         for field in missing_config:
-            print_success(f"  Added {field['key']} = {field['default']}")
+            print_success(t("cli.setup.added_default", config_key=field["key"], value=field["default"]))
         config["_config_version"] = latest_ver
         save_config(config)
     _print_setup_summary(config, hermes_home)

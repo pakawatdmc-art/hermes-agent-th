@@ -76,7 +76,7 @@ interface CommandCenterViewProps {
   onLoadMoreSessions?: () => Promise<void> | void
 }
 
-function formatTimestamp(value?: number | null): string {
+function formatTimestamp(value: number | null | undefined, locale: string): string {
   if (!value) {
     return ''
   }
@@ -87,7 +87,7 @@ function formatTimestamp(value?: number | null): string {
     return ''
   }
 
-  return fmtDateTime.format(date)
+  return fmtDateTime.format(date, locale)
 }
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -152,7 +152,7 @@ export function CommandCenterView({
   onLoadMoreSessions,
   onOpenSession
 }: CommandCenterViewProps) {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const cc = t.commandCenter
   // $sessions ticks on every streaming token (title updates, new sessions),
   // but we only need the data on the Sessions tab. Subscribe conditionally so
@@ -429,7 +429,7 @@ export function CommandCenterView({
                                 {sessionTitle(session)}
                               </div>
                               <div className="truncate text-[length:var(--conversation-caption-font-size)] text-(--ui-text-tertiary)">
-                                {formatTimestamp(session.last_active || session.started_at)}
+                                {formatTimestamp(session.last_active || session.started_at, locale)}
                               </div>
                             </button>
                             <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">

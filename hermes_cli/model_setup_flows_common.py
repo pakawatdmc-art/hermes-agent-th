@@ -8,6 +8,8 @@ cycle) and tests patch ``hermes_cli.config.load_config`` etc. at call time.
 
 from __future__ import annotations
 
+from agent.i18n import t
+
 import contextlib
 import subprocess
 from urllib.parse import urlparse
@@ -43,7 +45,7 @@ def _ask(prompt: str, *, secret: bool = False, raw: bool = False, cancel_msg: st
         return fn(prompt).strip()
     except (KeyboardInterrupt, EOFError):
         if cancel_msg is not None:
-            print(cancel_msg)
+            print("\n" + t("cli.auth.model_cancelled") if cancel_msg == "\nCancelled." else cancel_msg)
         return on_cancel
 
 
@@ -193,12 +195,12 @@ def _run_login(login_fn, *args, **kwargs) -> bool:
         login_fn(*args, **kwargs)
     except SystemExit as exc:
         if exc.code in (130, None, 0):
-            print("Sign-in was cancelled.")
+            print(t("cli.auth.model_sign_in_cancelled"))
         elif isinstance(exc.code, str) and exc.code.strip():
-            print(f"Sign-in did not complete: {exc.code.strip()}")
-            print(f"Run `{retry_command}` to try again.")
+            print(t("cli.auth.model_sign_in_detail", detail=exc.code.strip()))
+            print(t("cli.auth.model_sign_in_retry", retry=retry_command))
         else:
-            print(f"Sign-in did not complete; run `{retry_command}` to try again.")
+            print(t("cli.auth.model_sign_in_incomplete", retry=retry_command))
         return False
     except Exception as exc:
         for line in sign_in_failure_lines(exc, service_host=service_host, retry_command=retry_command):
@@ -212,18 +214,18 @@ def _oauth_gate(logged_in: bool, name: str, login_fn, *login_args, fresh_name: s
     use / reauthenticate (``force_new_login``; *recheck()* must then report logged in) /
     cancel. Returns False when the flow must stop."""
     if not logged_in:
-        _say(f"Not logged into {name}. Starting login...", "")
+        _say(t("cli.auth.model_start_login", provider=name), "")
         return _run_login(login_fn, *login_args)
-    _say(f"  {name} credentials: ✓", "")
-    choice = _prompt_auth_credentials_choice(f"{name} credentials:")
+    _say(t("cli.auth.model_credentials_ready", provider=name), "")
+    choice = _prompt_auth_credentials_choice(t("cli.auth.model_credentials_title", provider=name))
     if choice == "cancel":
         return False
     if choice == "reauth":
-        _say(f"Starting a fresh {fresh_name or name} login...", "")
+        _say(t("cli.auth.model_fresh_login", provider=fresh_name or name), "")
         if not _run_login(login_fn, *login_args, force_new_login=True):
             return False
         if recheck is not None and not recheck():
-            print("Login failed.")
+            print(t("cli.auth.model_login_failed"))
             return False
     return True
 
@@ -251,7 +253,7 @@ def _models_dev_merged(provider_id: str, curated) -> list:
 
 def _show_curated(model_list) -> None:
     if model_list:
-        print(f'  Showing {len(model_list)} curated models — use "Enter custom model name" for others.')
+        print(t("cli.auth.curated_models", count=len(model_list)))
 
 
 def _prune_replaced_custom_model_config_credentials(base_url: str, *, provider_name: str = "") -> None:
@@ -324,12 +326,14 @@ def _prompt_auth_credentials_choice(title: str) -> str:
     Returns one of ``"use"``, ``"reauth"``, ``"cancel"``. Falls back to a
     numbered prompt when curses is unavailable (piped stdin, non-TTY).
     """
-    choices = ["Use existing credentials", "Reauthenticate (new OAuth login)", "Cancel"]
+    choices = [t("cli.auth.model_reuse"),
+               t("cli.auth.model_reauthenticate"),
+               t("cli.auth.model_choice_cancel")]
     idx = _curses_choice(title, choices, 0)
     if idx is not None and idx >= 0:
         print()
         return ("use", "reauth", "cancel")[idx]
     _print_numbered(title, choices, 0)
     print()
-    choice = _ask("  Choice [1/2/3]: ", raw=True, cancel_msg=None, on_cancel="1")
+    choice = _ask(t("cli.auth.model_auth_choice"), raw=True, cancel_msg=None, on_cancel="1")
     return {"2": "reauth", "3": "cancel"}.get(choice, "use")

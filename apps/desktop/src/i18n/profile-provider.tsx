@@ -7,6 +7,7 @@ import { $connection, $gatewayState } from '@/store/session'
 
 import { syncBackendLocalePacks } from './backend-packs'
 import { I18nProvider } from './context'
+import { EDITION_DEFAULT_LOCALE } from './edition'
 import { unregisterAppLocaleSource } from './registry'
 import { $requestedLocale } from './runtime'
 
@@ -27,7 +28,11 @@ export function ProfileI18nProvider({ children }: { children: ReactNode }) {
 
   useBackendLocalePacks(scopeKey)
 
-  return <I18nProvider scopeKey={scopeKey}>{children}</I18nProvider>
+  return (
+    <I18nProvider defaultLocale={EDITION_DEFAULT_LOCALE} scopeKey={scopeKey}>
+      {children}
+    </I18nProvider>
+  )
 }
 
 /**

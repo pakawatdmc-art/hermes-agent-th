@@ -2,20 +2,11 @@ import { useAuiState } from '@assistant-ui/react'
 import { useStore } from '@nanostores/react'
 import type { FC } from 'react'
 
+import { useI18n } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { $displayTimestamps } from '@/store/display-timestamps'
 
 import { formatTimelineRange } from './timestamp'
-
-const preciseDateTime = new Intl.DateTimeFormat(undefined, {
-  day: 'numeric',
-  fractionalSecondDigits: 3,
-  hour: 'numeric',
-  minute: '2-digit',
-  month: 'short',
-  second: '2-digit',
-  year: 'numeric'
-})
 
 const validUnixSeconds = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value > 0
@@ -35,6 +26,13 @@ export const TimelineTimestamp: FC<{
   completedAt?: number
   timestamp?: number
 }> = ({ className, completedAt, timestamp }) => {
+  const { locale } = useI18n()
+
+  const preciseDateTime = new Intl.DateTimeFormat(locale, {
+    day: 'numeric', fractionalSecondDigits: 3, hour: 'numeric', minute: '2-digit', month: 'short', second: '2-digit', year: 'numeric',
+    ...(locale === 'th' ? { calendar: 'gregory', era: 'short', hourCycle: 'h23' } : {})
+  })
+
   // One config key everywhere (#41531): `display.timestamps` in config.yaml
   // gates transcript timestamps here exactly as it gates the classic CLI's
   // [HH:MM] labels. Display-only, so toggling never touches model context.
@@ -48,8 +46,8 @@ export const TimelineTimestamp: FC<{
   const completed = validUnixSeconds(completedAt) && completedAt > timestamp ? unixDate(completedAt) : null
 
   const validCompletedAt = completed && validUnixSeconds(completedAt) ? completedAt : undefined
-  const startLabel = formatTimelineRange(timestamp, undefined)
-  const completedLabel = validCompletedAt === undefined ? '' : formatTimelineRange(validCompletedAt, undefined)
+  const startLabel = formatTimelineRange(timestamp, undefined, locale)
+  const completedLabel = validCompletedAt === undefined ? '' : formatTimelineRange(validCompletedAt, undefined, locale)
 
   const title = completed
     ? `${preciseDateTime.format(started)} → ${preciseDateTime.format(completed)}`

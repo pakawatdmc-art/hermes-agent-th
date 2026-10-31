@@ -16,6 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  fmtDateTime,
   GlyphSpinner,
   host,
   Input,
@@ -327,10 +328,10 @@ function scheduleLabel(schedule: string | undefined): string {
 
 /** Absolute + relative rendering of a cron timestamp, or null when the job
  *  has never carried one (a job that has not run yet has no `last_run_at`). */
-function routineTimestamp(value: string | undefined): null | string {
+function routineTimestamp(value: string | undefined, locale?: string): null | string {
   const ms = value ? new Date(value).getTime() : Number.NaN
 
-  return Number.isFinite(ms) ? `${relativeTime(ms)} · ${new Date(ms).toLocaleString()}` : null
+  return Number.isFinite(ms) ? `${relativeTime(ms, undefined, locale)} · ${fmtDateTime.format(ms, locale)}` : null
 }
 
 /** The scheduler's `last_status` literals, spelled out for the inspector. The
@@ -369,7 +370,8 @@ export function routineLastResult(status: string | null | undefined, c = botsTex
  *  drops its row instead of rendering "undefined". */
 export function routineDetailRows(
   job: RoutineJob | null | undefined,
-  c = botsText().cron
+  c = botsText().cron,
+  locale?: string
 ): Array<{ label: string; value: string }> {
   const paused = job?.enabled === false || job?.state === 'paused'
   const label = scheduleLabel(job?.schedule)
@@ -390,9 +392,9 @@ export function routineDetailRows(
       // promised as a next run (#114309); the card below makes the same call.
       [
         job && nextRunOverdueMs(job) !== null ? c.overdueSince : c.nextRun,
-        paused ? null : routineTimestamp(job?.next_run_at)
+        paused ? null : routineTimestamp(job?.next_run_at, locale)
       ],
-      [c.lastRun, routineTimestamp(job?.last_run_at)],
+      [c.lastRun, routineTimestamp(job?.last_run_at, locale)],
       [c.lastResult, routineLastResult(job?.last_status, c)],
       [translateNow('cron.deliverLabel'), job?.deliver],
       [translateNow('cron.modelLabel'), job?.model],
@@ -427,8 +429,8 @@ interface RoutineDetailDialogProps {
  *  row's own switch and delete. */
 export function RoutineDetailDialog({ job, onClose, open }: RoutineDetailDialogProps) {
   const b = useBots()
-  const { t } = useI18n()
-  const rows = job ? routineDetailRows(job, b.cron) : []
+  const { locale, t } = useI18n()
+  const rows = job ? routineDetailRows(job, b.cron, locale) : []
   const issue = job ? routineDetailIssue(job) : null
   const instruction = String(job?.prompt_preview || '').trim()
 
@@ -489,7 +491,7 @@ interface RoutineRowProps {
 
 export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
   const b = useBots()
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const c = t.cron
   const profile = typeof owner === 'string' ? owner : owner?.name
   const [busy, setBusy] = useState(false)
@@ -594,7 +596,7 @@ export function RoutineRow({ job, onOpen, owner }: RoutineRowProps) {
         </span>
         <span className="ml-auto shrink-0 whitespace-nowrap text-[0.65rem] text-(--ui-text-quaternary)">
           {active && job.next_run_at
-            ? `${nextRunOverdueMs(job) === null ? c.next : c.overdueSince} ${relativeTime(new Date(job.next_run_at).getTime())}`
+            ? `${nextRunOverdueMs(job) === null ? c.next : c.overdueSince} ${relativeTime(new Date(job.next_run_at).getTime(), undefined, locale)}`
             : c.states.paused}
         </span>
       </div>

@@ -9,6 +9,9 @@ import { setApiRequestConnection, setApiRequestProfile } from '@/api/client'
 // Test harness supplies the host's locale registration, as plugin loading does.
 // eslint-disable-next-line no-restricted-imports
 import { registerPluginLocales } from '@/i18n/plugin-i18n'
+// The fixture renders the host's English UI, including module-level toast copy.
+// eslint-disable-next-line no-restricted-imports
+import { getRuntimeI18nLocale, setRuntimeI18nLocale } from '@/i18n/runtime'
 // Test harness reads the host's toast stack.
 // eslint-disable-next-line no-restricted-imports
 import { $notifications, clearNotifications } from '@/store/notifications'
@@ -32,6 +35,7 @@ let detail: object
 let client: QueryClient
 let disposeApi: () => void
 let disposeLocales: () => void
+const initialLocale = getRuntimeI18nLocale()
 
 const rest = vi.fn(async (path: string, options?: PluginRestOptions): Promise<unknown> => {
   if (path === '/tasks/t_example/attachments' && options?.method === 'POST') {
@@ -64,6 +68,7 @@ const rest = vi.fn(async (path: string, options?: PluginRestOptions): Promise<un
 })
 
 beforeEach(() => {
+  setRuntimeI18nLocale('en')
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   disposeLocales = registerPluginLocales('kanban', KANBAN_LOCALES)
   disposeApi = bindApi(
@@ -74,6 +79,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  setRuntimeI18nLocale(initialLocale)
   setApiRequestConnection(null)
   setApiRequestProfile(null)
   clearNotifications()

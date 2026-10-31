@@ -2,17 +2,46 @@
 // per-render) + relative-time helpers. Every surface that shows a timestamp or
 // an age pulls from here so the rendered strings stay consistent app-wide.
 
+import { getRuntimeI18nLocale } from '@/i18n/runtime'
+
 export const SECOND = 1000
 export const MINUTE = 60_000
 export const HOUR = 3_600_000
 export const DAY = 86_400_000
 
 // ── Absolute date/time formatters ──────────────────────────────────────────
+interface DateFormatter {
+  format(value?: Date | number, locale?: string): string
+}
+
+function dateFormatter(options: Intl.DateTimeFormatOptions): DateFormatter {
+  const cache = new Map<string, Intl.DateTimeFormat>()
+
+  return {
+    format(value, locale = getRuntimeI18nLocale()) {
+      let formatter = cache.get(locale)
+
+      if (!formatter) {
+        // Keep stored timestamps/timezones unchanged. Thai years explicitly say ค.ศ. so mixed
+        // Thai/English work and schedule dates cannot silently differ by 543 years.
+        const thai = locale === 'th'
+        formatter = new Intl.DateTimeFormat(locale, {
+          ...options,
+          ...(thai ? { calendar: 'gregory', hourCycle: 'h23', ...(options.year ? { era: 'short' } : {}) } : {})
+        })
+        cache.set(locale, formatter)
+      }
+
+      return formatter.format(value)
+    }
+  }
+}
+
 // `hh:mm` clock (thread today/yesterday lines).
-export const fmtClock = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
+export const fmtClock = dateFormatter({ hour: 'numeric', minute: '2-digit' })
 
 // Compact "day + clock", no year/seconds (artifacts, thread fallback, cron runs).
-export const fmtDayTime = new Intl.DateTimeFormat(undefined, {
+export const fmtDayTime = dateFormatter({
   day: 'numeric',
   hour: 'numeric',
   minute: '2-digit',
@@ -20,25 +49,50 @@ export const fmtDayTime = new Intl.DateTimeFormat(undefined, {
 })
 
 // Medium date + short time (command center session detail).
-export const fmtDateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+export const fmtDateTime = dateFormatter({
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit'
+})
 
 // Weekday + full date + clock (message time tooltips).
-export const fmtFullDateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeStyle: 'short' })
+export const fmtFullDateTime = dateFormatter({
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit'
+})
 
 // Date only, "5 Jun 2026" (starmap tooltip).
-export const fmtDate = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+export const fmtDate = dateFormatter({ day: 'numeric', month: 'short', year: 'numeric' })
 
 // Month name alone / with year — session-list date-bucket dividers ("September",
 // "September 2025").
-export const fmtMonth = new Intl.DateTimeFormat(undefined, { month: 'long' })
-export const fmtMonthYear = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' })
+export const fmtMonth = dateFormatter({ month: 'long' })
+export const fmtMonthYear = dateFormatter({ month: 'long', year: 'numeric' })
 
 // ── Relative time ──────────────────────────────────────────────────────────
-const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'short' })
+const relativeFormatters = new Map<string, Intl.RelativeTimeFormat>()
+
+function relativeFormatter(locale: string): Intl.RelativeTimeFormat {
+  let formatter = relativeFormatters.get(locale)
+
+  if (!formatter) {
+    formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
+    relativeFormatters.set(locale, formatter)
+  }
+
+  return formatter
+}
 
 // Localized bidirectional "in 5 min" / "2 hr ago" — coarsest sensible unit so a
 // daily job reads "in 14 hr", not "in 840 min".
-export function relativeTime(targetMs: number, nowMs = Date.now()): string {
+export function relativeTime(targetMs: number, nowMs = Date.now(), locale = getRuntimeI18nLocale()): string {
+  const rtf = relativeFormatter(locale)
   const diff = targetMs - nowMs
   const abs = Math.abs(diff)
   const sign = diff < 0 ? -1 : 1
@@ -99,9 +153,9 @@ export const nominalDayStart = (ms: number): number => startOfLocalDay(ms - DAY_
 
 // Locale-aware first day of week in JS getDay() convention (0=Sun … 6=Sat).
 // Intl.Locale weekInfo reports 1=Mon … 7=Sun; unsupported → Monday.
-export function localeWeekStartDay(): number {
+export function localeWeekStartDay(localeId = getRuntimeI18nLocale()): number {
   try {
-    const locale = new Intl.Locale(new Intl.DateTimeFormat().resolvedOptions().locale)
+    const locale = new Intl.Locale(localeId)
     const withWeekInfo = locale as { getWeekInfo?: () => { firstDay?: number }; weekInfo?: { firstDay?: number } }
     const firstDay = (withWeekInfo.getWeekInfo?.() ?? withWeekInfo.weekInfo)?.firstDay
 
@@ -169,7 +223,7 @@ export function calendarBucket(
 
 // Localized divider label for a bucket: fixed relative strings from i18n,
 // Intl-formatted month / month-year for the rest.
-export function sessionBucketLabel(bucket: SessionBucket, labels: SessionBucketLabels): string {
+export function sessionBucketLabel(bucket: SessionBucket, labels: SessionBucketLabels, locale?: string): string {
   switch (bucket.kind) {
     case 'today':
       return labels.today
@@ -187,10 +241,10 @@ export function sessionBucketLabel(bucket: SessionBucket, labels: SessionBucketL
       return labels.thisMonth
 
     case 'month':
-      return fmtMonth.format(bucket.at)
+      return fmtMonth.format(bucket.at, locale)
 
     case 'monthYear':
-      return fmtMonthYear.format(bucket.at)
+      return fmtMonthYear.format(bucket.at, locale)
   }
 }
 

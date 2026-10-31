@@ -25,7 +25,7 @@ interface ChipState {
   warn: boolean
 }
 
-function poolChipState(provider: ModelOptionProvider, copy: ModelMenuTranslations): ChipState | null {
+function poolChipState(provider: ModelOptionProvider, copy: ModelMenuTranslations, locale: string): ChipState | null {
   const pool = poolUsage(provider)
 
   if (!pool) {
@@ -33,7 +33,7 @@ function poolChipState(provider: ModelOptionProvider, copy: ModelMenuTranslation
   }
 
   const resetMs = accountResetMs(provider) ?? pool.resetMs
-  const time = resetMs === null ? null : formatReset(resetMs)
+  const time = resetMs === null ? null : formatReset(resetMs, undefined, locale)
 
   const count =
     pool.limited > 0 ? copy.poolLimited(pool.limited, pool.accounts.length) : copy.poolAccounts(pool.accounts.length)
@@ -52,11 +52,13 @@ function poolChipState(provider: ModelOptionProvider, copy: ModelMenuTranslation
 /** A scan-first account list: each row shows its tightest live window as a bar, with exact
  *  remaining/reset beside it. Unknown and signed-out rows stay empty rather than looking full. */
 function PoolUsageTip({ accounts, copy }: { accounts: PoolAccountView[]; copy: ModelMenuTranslations }) {
+  const { locale } = useI18n()
+
   return (
     <span className="grid w-60 gap-2 py-0.5">
       {accounts.map((entry, index) => {
         const tightest = entry.windows[0]
-        const reset = (ms: null | number) => (ms === null ? null : formatReset(ms))
+        const reset = (ms: null | number) => (ms === null ? null : formatReset(ms, undefined, locale))
         const limited = entry.state === 'limited'
         const unavailable = entry.state === 'unknown' || entry.state === 'unavailable'
         const width = limited || unavailable ? 0 : (tightest?.remaining ?? 0)
@@ -109,9 +111,9 @@ function PoolUsageTip({ accounts, copy }: { accounts: PoolAccountView[]; copy: M
 }
 
 function useChipState(provider: ModelOptionProvider): ChipState | null {
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const copy = t.shell.modelMenu
-  const pool = poolChipState(provider, copy)
+  const pool = poolChipState(provider, copy, locale)
 
   if (pool) {
     return pool
@@ -120,7 +122,7 @@ function useChipState(provider: ModelOptionProvider): ChipState | null {
   const resetMs = accountResetMs(provider)
 
   if (resetMs !== null) {
-    const time = formatReset(resetMs)
+    const time = formatReset(resetMs, undefined, locale)
 
     return {
       label: time ? copy.limitedUntil(time) : copy.limited,
@@ -137,7 +139,7 @@ function useChipState(provider: ModelOptionProvider): ChipState | null {
     return null
   }
 
-  const reset = (ms: null | number) => (ms === null ? null : formatReset(ms))
+  const reset = (ms: null | number) => (ms === null ? null : formatReset(ms, undefined, locale))
 
   const lines = [
     copy.usageTip(provider.name),

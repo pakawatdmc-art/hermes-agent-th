@@ -4,6 +4,8 @@ take effect; setup.py re-exports the public entry points."""
 
 import json
 import logging
+
+from agent.i18n import t
 import os
 from pathlib import Path
 from tools import tool_backend_helpers
@@ -123,8 +125,8 @@ def _report_binary(found: str | None, missing: str, install_hint: str, found_pre
 
 
 def _setup_backend_local(config: dict) -> None:
-    _setup.print_success("Terminal backend: Local")
-    _setup.print_info("Commands run directly on this machine.")
+    _setup.print_success(t('cli.setup.local_ready'))
+    _setup.print_info(t('cli.setup.local_help'))
     # Gateway cwd defaults to home; sudo stays off. Both configurable via `hermes setup terminal`.
     config["terminal"].setdefault("cwd", str(Path.home()))
 
@@ -255,11 +257,11 @@ def _setup_backend_plugin(config: dict, backend: str) -> None:
 
 
 _BUILTIN_TERMINAL_BACKENDS = [
-    ("local", "Local - run directly on this machine (default)"),
-    ("docker", "Docker/Podman - isolated container with configurable resources"),
-    ("modal", "Modal - serverless cloud sandbox"), ("ssh", "SSH - run on a remote machine"),
-    ("daytona", "Daytona - persistent cloud development environment"),
-    ("vercel_sandbox", "Vercel Sandbox - cloud microVM with snapshot filesystem persistence")]
+    ("local", 'cli.setup.local'),
+    ("docker", 'cli.setup.docker'),
+    ("modal", 'cli.setup.modal'), ("ssh", 'cli.setup.ssh'),
+    ("daytona", 'cli.setup.daytona'),
+    ("vercel_sandbox", 'cli.setup.vercel')]
 _TERMINAL_BACKEND_SETUP = {
     "local": _setup_backend_local, "docker": _setup_backend_docker, "modal": _setup_backend_modal,
     "daytona": _setup_backend_daytona, "vercel_sandbox": _setup_backend_vercel, "ssh": _setup_backend_ssh}
@@ -271,12 +273,12 @@ _BACKEND_ENV_MIRROR = {"modal": ("TERMINAL_MODAL_MODE", "modal_mode", "auto"),
 
 def setup_terminal_backend(config: dict):
     """Configure the terminal execution backend."""
-    _setup.print_header("Terminal Backend")
-    _setup._info("Choose where Hermes runs shell commands and code.",
-                 "This affects tool execution, file access, and isolation.",
-                 f"   Guide: {_setup._DOCS_BASE}/user-guide/configuration#terminal-backend-configuration", None)
+    _setup.print_header(t('cli.setup.terminal'))
+    _setup._info(t('cli.setup.terminal_intro'),
+                 t('cli.setup.terminal_impact'),
+                 t("cli.setup.guide", url=f"{_setup._DOCS_BASE}/user-guide/configuration#terminal-backend-configuration"), None)
     current_backend = _setup.cfg_get(config, "terminal", "backend", default="local")
-    backends = list(_BUILTIN_TERMINAL_BACKENDS)
+    backends = [(key, t(label)) for key, label in _BUILTIN_TERMINAL_BACKENDS]
     # Plugin-registered backends (~/.hermes/plugins/). Fail-soft: a broken plugin must not take
     # the wizard down.
     plugin_backend_names = []
@@ -290,10 +292,10 @@ def setup_terminal_backend(config: dict):
             plugin_backend_names.append(pname)
     except Exception:
         pass
-    terminal_choices = [label for _, label in backends] + [f"Keep current ({current_backend})"]
-    terminal_idx = _setup.prompt_choice("Select terminal backend:", terminal_choices, len(backends))
+    terminal_choices = [label for _, label in backends] + [t("cli.setup.keep_backend", backend=current_backend)]
+    terminal_idx = _setup.prompt_choice(t('cli.setup.terminal_select'), terminal_choices, len(backends))
     if terminal_idx == len(backends):
-        _setup.print_info(f"Keeping current backend: {current_backend}")
+        _setup.print_info(t("cli.setup.backend_kept", backend=current_backend))
         return
     selected_backend = backends[terminal_idx][0] if 0 <= terminal_idx < len(backends) else None
     config.setdefault("terminal", {})["backend"] = selected_backend
@@ -309,7 +311,7 @@ def setup_terminal_backend(config: dict):
         _setup.save_env_value(env_var, config["terminal"].get(key, default))
     _setup.save_config(config)
     print()
-    _setup.print_success(f"Terminal backend set to: {selected_backend}")
+    _setup.print_success(t("cli.setup.backend_set", backend=selected_backend))
 
 
 import hermes_cli.setup as _setup
