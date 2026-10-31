@@ -159,3 +159,23 @@ def test_cancel_thai_reasoning_selection_preserves_existing_config(thai_home, mo
     monkeypatch.setattr(main_provider_setup, "_radiolist", lambda *_args: -1)
     main_provider_setup._prompt_main_reasoning_effort("test/model", "test")
     assert path.read_bytes() == before
+
+
+def test_thai_first_run_metrics_enter_keeps_collection_and_sharing_off(thai_home, monkeypatch, capsys):
+    from hermes_cli import curses_ui
+    from hermes_cli.config import read_user_config_raw
+    from hermes_cli.observability import shared_metrics_consent
+
+    prompts = []
+    monkeypatch.setattr(curses_ui, "flush_stdin", lambda: None)
+    monkeypatch.setattr(curses_ui, "_run_curses_menu", lambda **kwargs: kwargs["fallback"]())
+    monkeypatch.setattr("builtins.input", lambda question: prompts.append(question) or "")
+    assert shared_metrics_consent.offer_consent()
+    output = capsys.readouterr().out
+    assert "ช่วยปรับปรุง Hermes หรือไม่?" in output
+    assert "แบ่งปันสถิติให้ Nous" in output
+    assert "ไม่แบ่งปัน" in output
+    assert "พิมพ์หมายเลข แล้วกด Enter เพื่อยืนยัน" in output
+    assert "เลือก [ค่าเริ่มต้น 2]" in prompts[0]
+    state = shared_metrics_consent.consent_state(read_user_config_raw())
+    assert state == {"enabled": False, "send": False, "decided": True, "reask": False}

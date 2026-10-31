@@ -22,12 +22,14 @@ import os
 import sys
 from typing import Any
 
+from agent.i18n import t
+
 logger = logging.getLogger(__name__)
 
 # (label, enabled, send): the offer's two answers, in the order every surface shows them.
 OFFER_CHOICES = (
-    ("Share with Nous", True, True),
-    ("No thanks", False, False),
+    ("cli.setup.metrics.offer_share", True, True),
+    ("cli.setup.metrics.offer_decline", False, False),
 )
 _NO_THANKS = len(OFFER_CHOICES) - 1
 DOCS_URL = "https://hermes-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics"
@@ -130,20 +132,19 @@ def offer_consent(config: dict | None = None, *, reask: bool = False) -> bool:
     # answer it ("No thanks") before it was ever on screen, so the user was never really asked.
     flush_stdin()
     idx = curses_radiolist(
-        "Help improve Hermes?", [label for label, _, _ in OFFER_CHOICES], selected=_NO_THANKS, cancel_returns=-1,
+        t("cli.setup.metrics.offer_title"), [t(label) for label, _, _ in OFFER_CHOICES], selected=_NO_THANKS, cancel_returns=-1,
         description=f"{_REASK_NOTE}\n{_OFFER_DESCRIPTION}" if reask else _OFFER_DESCRIPTION,
     )
     if idx < 0 and reask:
         save_consent(False, False, config)
-        print_info("Kept \"No thanks\". Change it any time with `hermes setup telemetry`.")
+        print_info(t("cli.setup.metrics.kept_declined"))
         return True
     if idx < 0:
-        print_info("Not answered; Hermes will ask again. Decide any time with `hermes setup telemetry`.")
+        print_info(t("cli.setup.metrics.not_answered"))
         return False
     _, enabled, send = OFFER_CHOICES[idx]
     save_consent(enabled, send, config)
-    outcome = "sent to Nous once a day" if send else "off"
-    print_success(f"Shared metrics {outcome}. Change it any time with `hermes setup telemetry`.")
+    print_success(t("cli.setup.metrics.sharing_enabled") if send else t("cli.setup.metrics.sharing_disabled"))
     return True
 
 

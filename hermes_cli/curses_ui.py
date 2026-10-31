@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable, List, Optional, Sequence, Set, Tuple, Union
 
+from agent.i18n import t
+
 from hermes_cli.colors import Colors, color
 
 # Rich radiolist rows: (text, style). style is None | "yellow" | "dim" | "green" | "red". Plain ``str`` works too.
@@ -832,14 +834,14 @@ def _radio_numbered_fallback(
     headings: Optional[dict[int, str]] = None) -> int:
     """Text-based numbered fallback for radio selection (section titles printed, never numbered)."""
     print(color(f"\n  {title}", Colors.YELLOW))
-    print(color("  Select by number, Enter to confirm.\n", Colors.DIM))
+    print(color(t("cli.setup.menu.numbered_hint"), Colors.DIM))
     for i, label in enumerate(items):
         if headings and i in headings:
             print(color(f"  {headings[i]}", Colors.DIM))
         marker = color("(\u25cf)", Colors.GREEN) if i == selected else "(\u25cb)"
         print(f"  {marker} {i + 1:>2}. {format_radio_item_ansi(label)}")
     print()
-    idx = _read_numbered_choice(color(f"  Choice [default {selected + 1}]: ", Colors.DIM))
+    idx = _read_numbered_choice(color(t("cli.setup.menu.numbered_choice", default=selected + 1), Colors.DIM))
     if idx is _NAV_ABORT:
         return cancel_returns
     return idx if idx is not None and 0 <= idx < len(items) else selected
