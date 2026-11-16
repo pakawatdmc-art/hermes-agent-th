@@ -199,17 +199,17 @@ export function I18nProvider({
             return
           }
 
-          if (defaultLocale !== undefined) {
+          if (defaultLocale !== undefined && !requestedRef.current) {
             applyLocale(fallbackLocale)
 
             return
           }
 
-          // Generic clients retain OS inference; edition defaults stay unsaved.
+          // An explicit, pack-only request may become renderable during the machine probe.
           const machineProfile = await window.hermesDesktop?.getMachineProfile?.().catch(() => null)
 
           if (!cancelled && !userLocaleRef.current) {
-            applyLocale(resolveInitialLocale(undefined, machineProfile?.locale))
+            applyLocale(resolveInitialLocale(requestedRef.current, machineProfile?.locale))
           }
         })
         .catch(error => {

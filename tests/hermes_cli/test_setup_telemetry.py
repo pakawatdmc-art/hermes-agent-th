@@ -175,7 +175,7 @@ def test_unseen_no_thanks_is_asked_once_more_and_then_settled(monkeypatch):
     consent.offer_consent_before_chat(argparse.Namespace())
     consent.offer_consent_before_chat(argparse.Namespace())
 
-    assert len(shown) == 1 and shown[0].startswith(consent._REASK_NOTE)
+    assert len(shown) == 1 and shown[0].startswith("Asking once more:")
     assert consent.consent_state(read_raw_config()) == {"enabled": False, "send": False, "decided": True, "reask": False}
 
 
@@ -183,10 +183,11 @@ def test_every_cli_promise_that_pre_opt_in_data_stays_local_names_the_install_no
     """Invariant: the fresh-install note is the one record kept from before the consent answer and
     counted after it, so each CLI surface stating the pre-opt-in promise names that exception, and
     the explainer still fits an 80-column terminal (print_info indents by two)."""
-    from hermes_cli.observability.shared_metrics_consent import _OFFER_DESCRIPTION
+    from agent.i18n import t
+    from hermes_cli.observability.shared_metrics_consent import DOCS_URL
     from hermes_cli.setup import _SEND_CONSENT_EXPLAINER
 
     explainer = " ".join(_SEND_CONSENT_EXPLAINER)
-    for text in (explainer, " ".join(_OFFER_DESCRIPTION.split())):
+    for text in (explainer, " ".join(t("cli.setup.metrics.offer_description", url=DOCS_URL).split())):
         assert "before you opt in" in text and "install note" in text.split("before you opt in")[0], text
     assert max(len(line) for line in _SEND_CONSENT_EXPLAINER) + 2 <= 80

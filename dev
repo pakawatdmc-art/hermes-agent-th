@@ -33,7 +33,7 @@ case "${1:-help}" in
   doctor         ตรวจการตั้งค่าและสภาพแวดล้อม
   check ...      ตรวจโค้ดตามข้อกำหนดของต้นทาง
   test ...       ทดสอบด้วย runner ของต้นทาง (ค่าเริ่มต้น 2 workers)
-  COMMAND ...    รันคำสั่งใน environment ของ PM เช่น python หรือ npm
+  COMMAND ...    รันคำสั่งใน environment ของ PM เช่น python หรือ pnpm
 
 การตั้งค่า บัญชี และประวัติส่วนตัวอยู่ใน .hermes-dev/ ซึ่งไม่เข้า Git
 HELP
@@ -68,7 +68,7 @@ HELP
     desktop-build)
         shift
         ./scripts/run-in-hermes-env node scripts/build/electron-runtime.mjs --source "$repo_dir"
-        exec ./scripts/run-in-hermes-env npm run build --workspace apps/desktop "$@"
+        exec ./scripts/run-in-hermes-env pnpm --filter hermes run build "$@"
         ;;
     doctor)
         shift

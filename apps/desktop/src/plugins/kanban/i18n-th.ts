@@ -1,6 +1,10 @@
 import type { KanbanMessages } from './i18n'
 
 export const th: KanbanMessages = {
+  pinBoard: 'ปักหมุดกระดาน',
+  unpinBoard: 'เลิกปักหมุดกระดาน',
+  pinnedBoards: 'กระดานที่ปักหมุด',
+  pinnedBoardsHint: 'ลากเพื่อจัดลำดับ หรือกด Alt + ลูกศรซ้าย/ขวา',
   nav: 'คัมบัง',
   openBoard: 'คัมบัง: เปิดกระดาน',
   newTaskCommand: 'คัมบัง: งานใหม่',

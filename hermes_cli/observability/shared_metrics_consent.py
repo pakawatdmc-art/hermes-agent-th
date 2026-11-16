@@ -33,17 +33,6 @@ OFFER_CHOICES = (
 )
 _NO_THANKS = len(OFFER_CHOICES) - 1
 DOCS_URL = "https://hermes-agent.nousresearch.com/docs/developer-guide/relay-shared-metrics"
-_OFFER_DESCRIPTION = "\n".join((
-    "Shared metrics are bounded counters: activity, outcomes, error classes (with a",
-    "fixed-list reason when a memory write, compression, update or install fails),",
-    "model routes, token totals, feature use and coarse machine facts. Never prompts,",
-    "files, paths, setting values or error text. Sharing sends them to Nous once a",
-    "day. Apart from a one-time install note, data from before you opt in is never",
-    "sent.",
-    f"Details: {DOCS_URL}",
-    "Change it any time: hermes setup telemetry",
-))
-_REASK_NOTE = "Asking once more: an earlier version could save \"No thanks\" before you saw this question."
 
 
 def _section(cfg: Any) -> dict:
@@ -131,9 +120,12 @@ def offer_consent(config: dict | None = None, *, reask: bool = False) -> bool:
     # The offer appears seconds into startup; an Enter typed while Hermes booted would otherwise
     # answer it ("No thanks") before it was ever on screen, so the user was never really asked.
     flush_stdin()
+    description = t("cli.setup.metrics.offer_description", url=DOCS_URL)
+    if reask:
+        description = t("cli.setup.metrics.reask") + "\n" + description
     idx = curses_radiolist(
         t("cli.setup.metrics.offer_title"), [t(label) for label, _, _ in OFFER_CHOICES], selected=_NO_THANKS, cancel_returns=-1,
-        description=f"{_REASK_NOTE}\n{_OFFER_DESCRIPTION}" if reask else _OFFER_DESCRIPTION,
+        description=description,
     )
     if idx < 0 and reask:
         save_consent(False, False, config)

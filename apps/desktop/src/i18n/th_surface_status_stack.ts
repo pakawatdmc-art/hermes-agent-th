@@ -557,6 +557,8 @@ export const thStatusStackCopy = {
     appControls: 'การควบคุมแอป',
     modelMenu: thModelMenu,
     modelOptions: {
+      daybreak: 'Daybreak',
+      daybreakFailed: 'อัปเดต Daybreak ไม่สำเร็จ',
       noOptions: 'ไม่มีตัวเลือกสำหรับโมเดลนี้',
       options: 'ตัวเลือก',
       thinking: 'กำลังคิด',
@@ -682,6 +684,15 @@ export const thStatusStackCopy = {
         toggle: 'ทรัพยากรระบบ'
       },
       contextUsagePanel: {
+        compact: {
+          action: 'ย่อบทสนทนา',
+          busyHint: 'รอให้ตอบเสร็จหรือหยุดการตอบปัจจุบันก่อน',
+          confirm: 'ย่อ',
+          hint: 'สรุปบริบทก่อนหน้าเพื่อเพิ่มพื้นที่ แล้วคุยต่อในบทสนทนาเดิม',
+          question: 'ต้องการย่อแชตนี้เป็นบทสรุปหรือไม่',
+          questionNamed: title => `ต้องการย่อ “${title}” เป็นบทสรุปหรือไม่`,
+          working: 'กำลังย่อ…'
+        },
         categories: {
           conversation: 'การสนทนา',
           mcp: 'MCP',
@@ -712,6 +723,12 @@ export const thStatusStackCopy = {
     }
   },
   rightSidebar: {
+    terminalNewOn: 'เปิดเทอร์มินัลใหม่บน…',
+    terminalGatewayRemoved: 'เกตเวย์ที่นำออกแล้ว',
+    terminalGatewayRemovedBody: 'เกตเวย์ที่เคยใช้เทอร์มินัลนี้ถูกนำออกแล้ว จึงเปิดใหม่ไม่ได้ โปรดปิดแท็บนี้',
+    terminalGatewayNoShellBody: 'เกตเวย์นี้ไม่อนุญาตให้ใช้เชลล์ จึงเปิดเทอร์มินัลนี้ใหม่ไม่ได้ โปรดปิดแท็บนี้',
+    terminalDisconnectedBody:
+      'เทอร์มินัลตัดการเชื่อมต่อแล้ว กด Enter เพื่อเปิดเชลล์ใหม่ ข้อความก่อนหน้ายังเลื่อนกลับไปดูได้',
     terminalReadOnly: 'ผลลัพธ์แบบอ่านอย่างเดียว',
     terminalReadOnlyHelp:
       'หากต้องการตอบคำถามของคำสั่ง ให้หยุดคำสั่งที่ทำงานเบื้องหลังแล้วรันในเทอร์มินัลเทอร์มินัลใหม่ใหม่จะเปิดเชลล์แยก โดยไม่ได้เชื่อมต่อกับกระบวนการนี้',

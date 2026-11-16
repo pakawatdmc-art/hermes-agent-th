@@ -1,6 +1,16 @@
 import type { Translations } from './types'
 // The in-app browser pane's copy (`preview.web`), composed by en.ts.
 export const thPreviewWeb: Translations['preview']['web'] = {
+  vaultFill: 'กรอกข้อมูลเข้าสู่ระบบที่บันทึกไว้',
+  vaultTitle: site => `ข้อมูลเข้าสู่ระบบที่บันทึกไว้สำหรับ ${site}`,
+  vaultLoading: 'กำลังโหลดข้อมูลเข้าสู่ระบบ…',
+  vaultEmpty: 'ไม่มีข้อมูลเข้าสู่ระบบที่บันทึกไว้สำหรับเว็บไซต์นี้',
+  vaultUnlock: name => `ปลดล็อก ${name}`,
+  vaultOpenSettings: 'เปิดการตั้งค่าคลังข้อมูลรับรอง',
+  vaultFilled: label => `กรอก ${label} แล้ว ตรวจแบบฟอร์มก่อนเข้าสู่ระบบ`,
+  vaultFillFailed: 'กรอกข้อมูลเข้าสู่ระบบไม่สำเร็จ',
+  vaultLoadFailed: 'โหลดข้อมูลเข้าสู่ระบบที่บันทึกไว้ไม่สำเร็จ',
+  vaultPageNotReady: 'หน้าเว็บยังโหลดอยู่ โปรดลองอีกครั้งเมื่อโหลดเสร็จ',
   embeddedPreviewHint: 'บางไซต์บล็อกการแสดงตัวอย่างแบบฝัง เปิดหน้าเดิมในแท็บเบราว์เซอร์',
   appFailedToBoot: 'เริ่มแอปสำหรับแสดงตัวอย่างไม่ได้',
   serverNotFound: 'ไม่พบเซิร์ฟเวอร์',

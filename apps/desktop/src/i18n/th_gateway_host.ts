@@ -1,12 +1,27 @@
 import type { GatewayHostTranslations } from './types_gateway_host'
 // Settings → Gateways copy where the connection cannot change, spread into en.ts.
 export const thGatewayHost: GatewayHostTranslations = {
+  webappOauthPaste: {
+    title: 'ยืนยันการเข้าสู่ระบบ',
+    description:
+      'หากแท็บเข้าสู่ระบบเปิดที่อยู่ปลายทางไม่ได้เพราะเบราว์เซอร์นี้อยู่คนละเครื่องกับเกตเวย์ ให้วางที่อยู่นั้นที่นี่',
+    placeholder: 'http://127.0.0.1:…/webapp/gateway-connections/oauth/callback?…',
+    finish: 'ยืนยัน',
+    failed: 'เข้าสู่ระบบไม่สำเร็จ'
+  },
   unavailableTitle: 'การตั้งค่าเกตเวย์ไม่พร้อมใช้งาน',
   unavailableDesc: 'การตั้งค่าการเชื่อมต่อสามารถเปลี่ยนแปลงได้จากแอป Hermes Desktop บนคอมพิวเตอร์ที่ใช้งานเท่านั้น',
   webappHostTitle: 'โฮสต์ Hermes',
   webappHostDesc:
-    'เว็บแอปใช้เครื่อง Hermes ที่ให้บริการเว็บนี้เสมอ หากต้องการเปลี่ยนเกตเวย์ เข้าสู่ระบบ Hermes Cloud หรือจัดการการเชื่อมต่อที่บันทึกไว้ ให้ใช้ Hermes Desktop',
+    'เว็บแอปทำงานบนเครื่อง Hermes ที่ให้บริการเว็บนี้ รายการด้านล่างคือการเชื่อมต่อที่เครื่องนี้บันทึกและใช้ร่วมกับ Hermes Desktop การเชื่อมต่อเกตเวย์อื่นจะผ่านเครื่องนี้',
   webAccess: {
+    startStages: {
+      preparing: 'กำลังเตรียมเว็บแอป การสร้างอาจใช้เวลาสักครู่',
+      building: 'กำลังสร้างเว็บแอป อาจใช้เวลาสักครู่',
+      registering: 'กำลังตั้งค่าการเข้าสู่ระบบด้วย Nous สำหรับที่อยู่นี้',
+      restarting: 'กำลังเริ่มเกตเวย์ใหม่เพื่อให้บริการเว็บแอป'
+    },
+    startElapsed: time => `ผ่านไป ${time}`,
     title: 'การเข้าถึงเว็บ',
     intro:
       'เปิด Hermes บนคอมพิวเตอร์เครื่องนี้จากโทรศัพท์ของคุณหรือคอมพิวเตอร์เครื่องอื่น โดยเข้าสู่ระบบด้วยบัญชี Nous ของคุณ ใครก็ตามที่เข้าสู่ระบบสามารถเรียกใช้คำสั่งบนคอมพิวเตอร์เครื่องนี้ได้',

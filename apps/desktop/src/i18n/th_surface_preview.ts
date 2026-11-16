@@ -160,6 +160,7 @@ export const thPreviewCopy = {
   },
   assistant: {
     thread: {
+      contentRefusedNotice: 'ตัวกรองความปลอดภัยของโมเดลปฏิเสธข้อความนี้ โปรดลองเปลี่ยนคำถาม',
       loadingSession: 'กำลังโหลดบทสนทนา',
       showEarlier: 'แสดงข้อความก่อนหน้า',
       loadingResponse: 'Hermes กำลังโหลดการตอบกลับ',
@@ -283,6 +284,10 @@ export const thPreviewCopy = {
     themePicker: thThemePicker,
     catalogInstall: thCatalogInstall,
     mcpSetup: {
+      launchCommand: target => `เรียกใช้: ${target}`,
+      launchRemote: target => `เชื่อมต่อไปยัง: ${target}`,
+      launchEnv: keys => `ตัวแปรแวดล้อม: ${keys}`,
+      launchCwd: dir => `ไดเรกทอรีทำงาน: ${dir}`,
       installTitle: 'เพิ่มเซิร์ฟเวอร์ MCP',
       enableTitle: 'เปิดใช้งานเซิร์ฟเวอร์ MCP',
       authorizeTitle: 'อนุญาตเซิร์ฟเวอร์ MCP',

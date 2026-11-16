@@ -7,6 +7,10 @@ import type { Translations } from './types'
 export const thSkillDeepLinkCopy = {
   skillDeepLink: thSkillDeepLink,
   skills: {
+    lock: 'ล็อก',
+    locked: 'ล็อกแล้ว',
+    lockHint: 'เอเจนต์แก้ไขทักษะนี้ไม่ได้ขณะที่ล็อกอยู่ คุณยังแก้ไขได้ด้วยตัวเอง',
+    unlockedHint: 'ล็อกเพื่อป้องกันเอเจนต์แก้ไขทักษะนี้ คุณยังแก้ไขได้ด้วยตัวเอง',
     tabSkills: 'ทักษะ',
     tabToolsets: 'เครื่องมือ',
     configuringProfile: 'กำลังตั้งค่าสำหรับ:',
@@ -63,6 +67,19 @@ export const thSkillDeepLinkCopy = {
     skillArchivedMessage: 'กู้คืนได้ด้วยคำสั่ง hermes curator restore',
     tabPlugins: 'ปลั๊กอิน',
     plugins: {
+      updateAll: 'อัปเดตทั้งหมด',
+      updatingAll: 'กำลังอัปเดต…',
+      updateAllTip: 'ตรวจปลั๊กอินที่ติดตั้งทั้งหมด แล้วอัปเดตเฉพาะรายการที่ไม่ต้องรอการตรวจสอบ',
+      updateAllDone: (updated, review, failed) =>
+        `อัปเดตแล้ว ${updated} รายการ` +
+        (review ? ` ต้องตรวจสอบ ${review} รายการ` : '') +
+        (failed ? ` ไม่สำเร็จ ${failed} รายการ` : ''),
+      updateAllNone: 'ปลั๊กอินทั้งหมดเป็นรุ่นล่าสุดแล้ว',
+      updateAllFailed: 'อัปเดตปลั๊กอินไม่สำเร็จ',
+      autoUpdate: 'อัปเดตอัตโนมัติ',
+      autoUpdateTip: hours =>
+        `เมื่อเกตเวย์ตรวจสอบทุก ${hours} ชม. ให้อัปเดตปลั๊กอินอัตโนมัติ โค้ดใหม่จะเริ่มใช้ในบทสนทนาใหม่`,
+      autoUpdateFailed: 'เปลี่ยนการตั้งค่าอัปเดตปลั๊กอินอัตโนมัติไม่สำเร็จ',
       agentTitle: 'ปลั๊กอินเอเจนต์',
       agentBlurb: 'เพิ่มเครื่องมือ ฮุก และผู้ให้บริการโมเดลให้เอเจนต์ในโปรไฟล์ที่เลือก โดยมีผลหลังรีสตาร์ทเกตเวย์',
       pageBlurb: 'ปลั๊กอินเพิ่มความสามารถให้แอปนี้ เอเจนต์ หรือทั้งสองส่วนได้ โดยแต่ละส่วนมีสวิตช์แยกกัน',
@@ -454,6 +471,35 @@ export const thSkillDeepLinkCopy = {
     }
   },
   messaging: {
+    relayLink: {
+      title: 'Team Gateway',
+      badge: 'ไม่ต้องใช้โทเคนบอท',
+      intro: platform =>
+        `${platform} เชื่อมต่อเอเจนต์นี้ผ่านบอท Hermes ที่ใช้ร่วมกัน เชื่อมบัญชี ${platform} แล้วส่งข้อความถึงบอทเพื่อคุยกับเอเจนต์`,
+      link: platform => `เชื่อมต่อ ${platform}`,
+      linkAnother: platform => `เชื่อมบัญชี ${platform} เพิ่ม`,
+      linkedAccounts: 'บัญชีที่เชื่อมแล้ว',
+      unlink: 'ยกเลิกการเชื่อมบัญชี',
+      unlinkFailed: 'ยกเลิกการเชื่อมบัญชีไม่สำเร็จ',
+      stepOpen: platform => `1. สแกนโค้ดด้วยโทรศัพท์ หรือเปิดบอทใน ${platform}`,
+      stepSend: '2. ส่งข้อความนี้ถึงบอทจากบัญชีที่ต้องการเชื่อม:',
+      open: platform => `เปิด ${platform}`,
+      copy: 'คัดลอกข้อความ',
+      copied: 'คัดลอกแล้ว',
+      copyFailed: command => `คัดลอกไม่สำเร็จ ให้พิมพ์ ${command} แทน`,
+      waiting: 'กำลังรอให้บอทได้รับข้อความของคุณ รหัสนี้ใช้ได้ครั้งเดียว',
+      linked: platform => `เชื่อมบัญชี ${platform} แล้ว ส่งข้อความถึงบอทเพื่อคุยกับเอเจนต์ได้เลย`,
+      expired: 'รหัสหมดอายุก่อนใช้งาน ขอรหัสใหม่แล้วลองอีกครั้ง',
+      refused: platform => `${platform} ปฏิเสธการเชื่อมบัญชี ขอรหัสใหม่แล้วลองอีกครั้ง`,
+      qrAlt: platform => `คิวอาร์โค้ดสำหรับบอท ${platform} ที่ใช้ร่วมกัน`,
+      managed: 'จัดการโดย Team Gateway',
+      managedNote: platform =>
+        `ระบบนี้รับส่งข้อความผ่าน Team Gateway เกตเวย์จึงปิดการเชื่อมต่อ ${platform} โดยตรงทุกครั้งที่เริ่มทำงาน หากต้องการเปิดควบคู่กัน ให้ตั้ง GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS=true ใน environment ของเกตเวย์ การเชื่อมต่อโดยตรงจะทำให้ระบบลดจำนวนอินสแตนซ์ลงเหลือศูนย์ไม่ได้ และอาจส่งข้อความซ้ำ`,
+      managedIntro: 'บัญชีของเอเจนต์นี้เชื่อมได้ผ่าน Nous Portal',
+      openPortal: 'เชื่อมบัญชีใน Nous Portal',
+      noNewAccount: platform =>
+        `รหัสใช้ไม่ได้แล้วและไม่พบบัญชีใหม่ หากไม่มีบัญชี ${platform} ของคุณในรายการ ให้ขอรหัสใหม่แล้วลองอีกครั้ง`
+    },
     search: 'ค้นหาแพลตฟอร์มรับส่งข้อความ…',
     statusFilter: {
       all: 'ทั้งหมด',

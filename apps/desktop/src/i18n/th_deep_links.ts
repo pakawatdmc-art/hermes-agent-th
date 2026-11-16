@@ -11,7 +11,7 @@ export const thSkillDeepLink: SkillDeepLinkCopy = {
   source: 'แหล่งที่มา'
 }
 export const thGatewayGroupOpen: GatewayGroupOpenCopy = {
-  opening: 'กำลังเปิดกลุ่มในเกตเวย์...',
+  opening: 'กำลังเปิดแชตกลุ่ม…',
   lookupFailed: 'ค้นหากลุ่มนี้ในเกตเวย์ไม่สำเร็จ กรุณาลองอีกครั้ง',
-  missing: 'กลุ่มนี้ไม่มีอยู่ในเกตเวย์แล้ว'
+  missing: 'ไม่มีแชตกลุ่มนี้แล้ว'
 }

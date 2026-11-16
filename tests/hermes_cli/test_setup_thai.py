@@ -168,6 +168,16 @@ def test_thai_first_run_metrics_enter_keeps_collection_and_sharing_off(thai_home
 
     prompts = []
     monkeypatch.setattr(curses_ui, "flush_stdin", lambda: None)
+    original_radiolist = curses_ui.curses_radiolist
+
+    def check_consent_copy(*args, **kwargs):
+        description = kwargs["description"]
+        assert "ก่อนให้ความยินยอม" in description
+        assert "บันทึกการติดตั้งครั้งแรก" in description
+        assert shared_metrics_consent.DOCS_URL in description
+        return original_radiolist(*args, **kwargs)
+
+    monkeypatch.setattr(curses_ui, "curses_radiolist", check_consent_copy)
     monkeypatch.setattr(curses_ui, "_run_curses_menu", lambda **kwargs: kwargs["fallback"]())
     monkeypatch.setattr("builtins.input", lambda question: prompts.append(question) or "")
     assert shared_metrics_consent.offer_consent()

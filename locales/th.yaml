@@ -500,8 +500,6 @@ gateway.topic.help: "/topic — เปิดโหมดหลายบทสน
   Telegram จะสร้าง\n   หัวข้อใหม่สำหรับข้อความนั้น แต่ละหัวข้อมีบทสนทนา Hermes\n   แยกต่างหาก (ประวัติและบริบทใหม่)\n3. แชตส่วนตัวหลักกลายเป็นห้องระบบ
   ใช้ /topic, /status,\n   /help, /usage ที่นั่น ส่วนพรอมป์ต์ปกติให้ส่งในหัวข้อ\n4. /new ภายในหัวข้อจะรีเซ็ตเฉพาะบทสนทนาของหัวข้อนั้น\n\
   5. /topic <id> ภายในหัวข้อจะกู้คืนบทสนทนาเก่ามาไว้ในหัวข้อนั้น"
-gateway.topic.system_topic_name: ระบบ
-gateway.topic.system_topic_intro: หัวข้อระบบสำหรับคำสั่งและสถานะของ Hermes
 gateway.topic.setup_image_caption: BotFather → Bot Settings → Threads Settings
 gateway.topic.no_chat_id: ระบุรหัสแชตไม่ได้
 gateway.topic.mode_not_enabled: ขณะนี้ยังไม่ได้เปิดโหมดหัวข้อแบบหลายบทสนทนาสำหรับแชตนี้
@@ -1020,8 +1018,6 @@ platform.whatsapp.clarify_type_answer: '✏️ พิมพ์คำตอบข
 platform.whatsapp.approved: ✅ อนุญาตแล้ว
 platform.whatsapp.denied: ❌ ไม่อนุญาต
 platform.whatsapp.approval_expired: ⌛ คำขออนุญาตหมดอายุ — ไม่ได้เรียกใช้คำสั่ง (หมดเวลาหรือได้รับคำตอบจากที่อื่นแล้ว)
-platform.yuanbao.slow_response_notice: งานนี้มีหลายขั้นตอน ยังดำเนินการอยู่ กรุณารอสักครู่...
-platform.yuanbao.owner_command_denied: ⚠️ {command} ใช้ได้เฉพาะผู้สร้างในแชตส่วนตัว
 platform.shared.truncated_suffix: "\n...(ตัดข้อความแล้ว)"
 platform.shared.unknown: ไม่ทราบ
 platform.shared.approval_expired: ⌛ คำขออนุญาตหมดอายุ — ไม่ได้เรียกใช้คำสั่ง (หมดเวลาหรือได้รับคำตอบจากที่อื่นแล้ว)
@@ -4313,3 +4309,41 @@ cli.setup.metrics.sharing_enabled: "เปิดส่งสถิติกา�
 cli.setup.metrics.sharing_disabled: "ปิดการเก็บและส่งสถิติการใช้งานแล้ว เปลี่ยนได้ทุกเมื่อด้วย `hermes setup telemetry`"
 cli.setup.menu.numbered_hint: "  พิมพ์หมายเลข แล้วกด Enter เพื่อยืนยัน\n"
 cli.setup.menu.numbered_choice: "  เลือก [ค่าเริ่มต้น {default}]: "
+gateway.exec_approval.truncated_full_above: "แสดงตัวอย่างเพียงบางส่วน ดูคำสั่งเต็ม ({total} อักขระ) ได้ในข้อความด้านบน"
+platform.feishu.clarify.awaiting_typed: "กำลังรอให้ {user} พิมพ์คำตอบ…"
+platform.feishu.clarify.other: "✏️ อื่น ๆ (พิมพ์คำตอบ)"
+gateway.model.usage_reset: "`/model reset` — ยกเลิกการเลือกโมเดลเฉพาะบทสนทนานี้"
+gateway.exec_approval.text_prompt_deny_only: "คำขออนุญาตยาวเกินกว่าจะแสดงได้บนแพลตฟอร์มนี้ จึงเลือกได้เฉพาะปฏิเสธ โปรดตรวจคำขอใน CLI หรือ Desktop"
+cli.backtrack.editing_hint: "↺ กำลังแก้ไขข้อความที่ {number} — กด Enter เพื่อย้อนกลับมาที่นี่แล้วส่ง หรือกด Esc สองครั้งเพื่อยกเลิก"
+cli.backtrack.rewind_failed: "(x_x) ย้อนกลับไม่สำเร็จ ประวัติยังคงเดิม: {error}"
+gateway.model.reset_none: "บทสนทนานี้ใช้ `{model}` ซึ่งเป็นค่าเริ่มต้นของช่องทางหรือระบบอยู่แล้ว"
+platform.feishu.picker.apply_error: "ใช้ตัวเลือกนี้ไม่สำเร็จ: {error}"
+cli.backtrack.nothing: "(._.) ไม่มีข้อความก่อนหน้าให้ย้อนกลับ"
+shared.undo_rollback.list: "↶ ไฟล์ที่เปลี่ยนในรอบที่ยกเลิก: {files} ใช้ /rollback เพื่อดูจุดตรวจและกู้ไฟล์"
+shared.undo_rollback.more: "และอีก {count} รายการ"
+cli.backtrack.usage: "วิธีใช้: /rewind [N | fork N]"
+cli.backtrack.keys_hint: "กำลังดูประวัติ · ↑↓/jk เลื่อน · ←→/hl เลือกข้อความ · ↵ แก้ไข · f แยกบทสนทนา · esc กลับ"
+cli.backtrack.invalid: "(._.) ไม่มีข้อความที่ {value} โปรดเลือกตั้งแต่ 1 ถึง {total}"
+cli.backtrack.target_changed: "(x_x) บทสนทนาเปลี่ยนไปหลังจากคุณเลือกข้อความที่ {number} ประวัติยังอยู่ครบ ข้อความที่แก้ไขกลับมาอยู่ในช่องพิมพ์แล้ว"
+cli.backtrack.prime_hint: "กด esc อีกครั้งเพื่อแก้ไขข้อความก่อนหน้า"
+slash.rewind.description: "ย้อนกลับไปแก้ไขและส่งข้อความก่อนหน้าอีกครั้ง หรือแยกบทสนทนาจากจุดนั้น (Esc สองครั้ง)"
+cli.backtrack.rewound: "↺ ย้อนกลับไปที่ข้อความที่ {number} แล้ว (เก็บ {count} ข้อความเข้าคลัง) กำลังส่งข้อความที่แก้ไข"
+cli.model.reset_no_default: "ยังไม่ได้ตั้ง model.default ใน config.yaml จึงไม่มีค่าให้กลับไปใช้"
+gateway.model.reset_done: "ยกเลิกโมเดลเฉพาะบทสนทนาแล้ว ตอนนี้ใช้ `{model}` (ค่าเริ่มต้นของช่องทางหรือระบบ) และเก็บประวัติไว้ครบ"
+cli.backtrack.edit_cancelled: "↺ ยกเลิกการย้อนกลับแล้ว ประวัติยังอยู่ครบ"
+cli.backtrack.no_previous: "ไม่มีข้อความก่อนหน้าให้แก้ไข"
+cli.model.reset_none: "กำลังใช้โมเดลเริ่มต้น ({model}) อยู่แล้ว"
+gateway.exec_approval.truncated_deny_only: "ตัวอย่างถูกตัดให้สั้นลง (คำสั่งเต็มมี {total} อักขระ) เนื่องจากที่นี่แสดงคำสั่งได้ไม่ครบ จึงเลือกได้เฉพาะปฏิเสธ โปรดตรวจคำสั่งเต็มใน CLI หรือ Desktop"
+cli.tui.vscode_images_hint: "หากต้องการดูภาพเต็มความละเอียดใน VS Code ให้เปิด terminal.integrated.enableImages ในการตั้งค่า"
+cli.status_bar.ctx_fallback: " สำรอง"
+gateway.exec_approval.not_requester: "เฉพาะ {requester} เท่านั้นที่ตอบคำขออนุญาตนี้ได้"
+cli.backtrack.forked: "⑂ แยกบทสนทนาจากจุดก่อนข้อความที่ {number} แล้ว บทสนทนาเดิม {parent} ยังคงเดิม แก้ไขข้อความด้านล่างแล้วกด Enter เพื่อส่ง"
+gateway.exec_approval.not_requester_admins_only: "เฉพาะผู้ดูแลระบบหรือผู้อนุมัติในรายชื่อเท่านั้นที่ตอบคำขอนี้ได้"
+platform.feishu.clarify.title: "Hermes ต้องการคำตอบจากคุณ"
+cli.backtrack.title: "↺ ประวัติการสนทนา — เลือกข้อความที่ต้องการแก้ไข"
+cli.setup.import.stopped: "การนำเข้าจาก {source} หยุดลงเนื่องจากข้อผิดพลาด ดูรายละเอียดด้านบน"
+cli.setup.import.updating: "ปลั๊กอิน '{plugin}' รุ่นนี้ยังไม่รองรับการนำเข้าจาก {source} กำลังอัปเดต…"
+cli.setup.import.not_found: "ไม่พบการตั้งค่าเอเจนต์อื่นบนเครื่องนี้"
+cli.setup.import.usage: "นำเข้าได้ด้วยคำสั่ง: {commands}"
+cli.setup.metrics.offer_description: "สถิติที่เก็บเป็นตัวนับกิจกรรม ผลลัพธ์ ประเภทข้อผิดพลาด และสาเหตุจากรายการที่กำหนด\nเมื่อบันทึกความจำ ย่อบริบท อัปเดต หรือติดตั้งไม่สำเร็จ รวมถึงเส้นทางโมเดล\nจำนวนโทเคน การใช้ฟีเจอร์ และข้อมูลทั่วไปของเครื่อง\nไม่มีข้อความที่คุณพิมพ์ ไฟล์ พาธ ค่าที่ตั้ง หรือข้อความผิดพลาด\nเมื่ออนุญาต ระบบจะส่งสถิติให้ Nous วันละครั้ง ข้อมูลก่อนให้ความยินยอมจะไม่ถูกส่ง\nยกเว้นบันทึกการติดตั้งครั้งแรกเพียงรายการเดียว\nรายละเอียด: {url}\nเปลี่ยนการเลือกได้ทุกเมื่อด้วย hermes setup telemetry"
+cli.setup.metrics.reask: "ขอถามอีกครั้ง เนื่องจากรุ่นก่อนอาจบันทึกว่า “ไม่แบ่งปัน” ก่อนที่คุณจะเห็นคำถามนี้"

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { getRuntimeI18nLocale, setRuntimeI18nLocale } from '@/i18n/runtime'
 
-import { fmtClock, fmtDate, fmtMonth, fmtMonthYear, relativeTime } from './time'
+import { DAY, fmtClock, fmtDate, fmtMonth, fmtMonthYear, HOUR, MINUTE, relativeTime, SECOND } from './time'
 
 const initialLocale = getRuntimeI18nLocale()
 afterEach(() => setRuntimeI18nLocale(initialLocale))
@@ -40,4 +40,14 @@ describe('dates follow the chosen UI language', () => {
     )
     expect(target).toBe(now + 120_000)
   })
+})
+
+it.each(['th', 'en', 'ja', 'zh', 'zh-hant', 'ar', 'ru', 'fr', 'de', 'es'])('formats relative times in the selected %s locale', locale => {
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
+
+  for (const [unit, size] of [['second', SECOND], ['minute', MINUTE], ['hour', HOUR], ['day', DAY]] as const) {
+    for (const count of [-2, 2]) {
+      expect(relativeTime(count * size, 0, locale)).toBe(format.format(count, unit))
+    }
+  }
 })

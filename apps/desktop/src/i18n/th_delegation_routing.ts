@@ -1,6 +1,13 @@
 import type { DelegationRoutingTranslations } from './types_delegation_routing'
 
 export const thDelegationRouting: DelegationRoutingTranslations = {
+  daybreakLabel: 'Daybreak',
+  daybreakOff: 'ปิด',
+  daybreakOn: 'เปิด',
+  daybreakHint: 'ใช้สิทธิ์เข้าถึงแบบเชื่อถือของ OpenAI ซึ่งลดข้อจำกัดด้านความปลอดภัย เฉพาะเส้นทางนี้',
+  daybreakUnlisted: 'โมเดลนี้ไม่ได้อยู่ในรายชื่อ Daybreak ของบัญชีคุณ ปิด Daybreak หรือเลือกโมเดลอื่น',
+  daybreakNeedsPlugin:
+    'ปลั๊กอิน Advanced Delegation รุ่นนี้ยังไม่รองรับเส้นทาง Daybreak โปรดอัปเดตปลั๊กอินหรือปิดตัวเลือกนี้',
   title: 'การกำหนดเส้นทาง',
   settingsTitle: 'ค่าเริ่มต้นของเอเจนต์ย่อย',
   intro: 'วิธีเลือกโมเดลให้เอเจนต์ย่อยแต่ละตัว',

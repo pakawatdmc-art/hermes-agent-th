@@ -33,8 +33,8 @@ git clone https://github.com/pakawatdmc-art/hermes-agent-th.git
 cd hermes-agent-th
 git lfs pull
 ./dev setup
-./dev npm ci
-./dev npm run build --workspace ui-tui
+./dev pnpm install --frozen-lockfile
+./dev pnpm --filter hermes-tui run build
 ./dev desktop-build
 ```
 
@@ -145,8 +145,8 @@ Terminal แบบ TUI:
 ```bash
 git pull --ff-only origin main
 ./dev setup
-./dev npm ci
-./dev npm run build --workspace ui-tui
+./dev pnpm install --frozen-lockfile
+./dev pnpm --filter hermes-tui run build
 ./dev desktop-build
 ```
 
@@ -155,7 +155,7 @@ git pull --ff-only origin main
 
 ## เมื่อพบปัญหา
 
-- **Desktop แจ้งว่าไม่มี build:** รัน `./dev npm ci` และ `./dev desktop-build` ให้สำเร็จก่อนเปิด
+- **Desktop แจ้งว่าไม่มี build:** รัน `./dev pnpm install --frozen-lockfile` และ `./dev desktop-build` ให้สำเร็จก่อนเปิด
 - **ยังเห็นภาษาอังกฤษหลังตั้งค่า:** ปิด Desktop/TUI แล้วรัน `./dev hermes gateway stop` ก่อนเปิดใหม่
   ชื่อโมเดล คำสั่ง ผลจากเครื่องมือภายนอก และเมนูระบบบางส่วนยังเป็นอังกฤษได้
 - **เชื่อมโมเดลไม่ได้:** เปิด `./dev hermes model` เพื่อตรวจผู้ให้บริการและบัญชีที่เลือก
