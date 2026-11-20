@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Callable
 
-from agent.i18n import t
-
 
 def build_setup_parser(subparsers, *, cmd_setup: Callable) -> None:
     """Attach the ``setup`` subcommand to ``subparsers``."""
+    from agent.i18n import t
+
     setup_parser = subparsers.add_parser(
         "setup", help=t('cli.setup.help.setup'),
         description=t('cli.setup.help.setup_description'))
