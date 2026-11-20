@@ -96,6 +96,8 @@ def find_backend_imports(root: Path) -> list[tuple[str, int]]:
     offenders = []
     for directory, dirnames, filenames in os.walk(root, followlinks=False):
         dirnames[:] = sorted(name for name in dirnames if name not in _SKIP_DIRS)
+        if Path(directory) == root and ".hermes-dev" in dirnames:
+            dirnames.remove(".hermes-dev")  # PM environments contain generated copies of the checkout.
         for name in sorted(filenames):
             if not name.endswith(".py"):
                 continue

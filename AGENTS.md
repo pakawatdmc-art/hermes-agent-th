@@ -1,27 +1,18 @@
 # Hermes Agent - Development Guide
 
-This root file is a hub: what applies everywhere, then a routing table. Each area's `AGENTS.md`
-loads automatically when you work in that directory; read it before editing there.
-`python scripts/check` caps this file at 12k chars and every root-to-area chain at 30k: long form
-goes in `website/docs/developer-guide/`.
+Read the area's `AGENTS.md` before editing. Keep guides under 12k chars at root and 30k per
+chain. Long form lives in `website/docs/developer-guide/`.
 
 **Never give up on the right solution.**
 
-## Workspace rule for this checkout
-
-Keep all work for this project inside the physical checkout, including new projects,
-worktrees, drafts, temporary files, downloads, caches, and generated deliverables.
-Use `work/<project>/` for user projects and `.hermes-dev/` for private development state.
-Resolve symlinks before choosing a write destination. This applies to every tool and
-subagent working on this project.
+Keep this project's files, worktrees, caches and temporary outputs inside this physical checkout.
+Resolve symlinks first. Use `work/<project>/` for deliverables and `.hermes-dev/` for private state.
 
 ## What Hermes Is
 
 Hermes is a personal AI agent that runs one agent core across a CLI, a TUI, an Electron desktop
 app, a web dashboard, ACP editors and a messaging gateway (25+ platform plugins). It is extended
 through **plugins and skills**, not by growing the core.
-
-Two invariants shape almost every design decision and are the lens for reviewing any change:
 
 - **Per-conversation prompt caching is sacred.** Mutating past context, swapping toolsets,
   reloading memories or rebuilding the system prompt mid-conversation breaks the cached prefix and
