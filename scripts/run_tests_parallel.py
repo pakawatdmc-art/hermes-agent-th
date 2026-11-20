@@ -102,7 +102,9 @@ def _runner_scratch_root() -> str:
     back that does not need root. Keying by uid means no run is blocked by another's leftovers.
     """
     name = "hermes-pytest" + (f"-{os.getuid()}" if hasattr(os, "getuid") else "")
-    if os.name == "nt" or not os.path.isdir("/var/tmp"):  # no-tmp: ok — probing the disk-backed FHS root
+    if scratch_parent := os.environ.get("PYTEST_DEBUG_TEMPROOT"):
+        root = os.path.join(scratch_parent, name)
+    elif os.name == "nt" or not os.path.isdir("/var/tmp"):  # no-tmp: ok — probing the disk-backed FHS root
         root = os.path.join(tempfile.gettempdir(), name)
     else:
         root = f"/var/tmp/{name}"  # no-tmp: ok — /var/tmp is disk-backed by FHS, never tmpfs

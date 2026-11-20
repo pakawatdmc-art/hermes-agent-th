@@ -7,6 +7,14 @@ and every root-to-area chain at 30k, so it loads whole on 128k+ models: long for
 
 **Never give up on the right solution.**
 
+## Workspace rule for this checkout
+
+Keep all work for this project inside the physical checkout, including new projects,
+worktrees, drafts, temporary files, downloads, caches, and generated deliverables.
+Use `work/<project>/` for user projects and `.hermes-dev/` for private development state.
+Resolve symlinks before choosing a write destination. This applies to every tool and
+subagent working on this project.
+
 ## What Hermes Is
 
 Hermes is a personal AI agent that runs the same agent core across a CLI, a messaging

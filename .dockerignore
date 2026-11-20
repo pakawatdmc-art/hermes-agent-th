@@ -150,3 +150,7 @@ plans/
 # Local development state, credentials, and tool downloads.
 .hermes-dev/
 .local-tools/
+
+# Local projects and the checkout-specific macOS launcher.
+/work/
+/Hermes ภาษาไทย.app*

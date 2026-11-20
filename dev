@@ -2,23 +2,26 @@
 # Workspace-local entry point; Hermes PM owns the runtime and dependencies.
 set -e
 
-repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$repo_dir"
 umask 077
 export HERMES_HOME="$repo_dir/.hermes-dev"
 export HERMES_RUNTIME_DIR="$HERMES_HOME/tools"
 export UV_PYTHON_INSTALL_DIR="$HERMES_HOME/bootstrap-python"
-# The upstream archive guard scans the checkout; package caches contain .tar.gz files.
-export UV_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hermes-dev/uv"
+export XDG_CACHE_HOME="$HERMES_HOME/cache"
+export UV_CACHE_DIR="$XDG_CACHE_HOME/uv-downloads"
+export pnpm_config_store_dir="$XDG_CACHE_HOME/pnpm"
+export npm_config_cache="$XDG_CACHE_HOME/npm"
+export BH_HOME="$HERMES_HOME/browser-harness"
+export TMPDIR="$HERMES_HOME/tmp"
+export TMP="$TMPDIR" TEMP="$TMPDIR"
 export PATH="$repo_dir/.local-tools/bin:$PATH"
-mkdir -p "$HERMES_HOME"
-# PM's source-backend probe uses its home-scoped cache instead of UV_CACHE_DIR.
-# Keep both caches outside the tree checked by the upstream archive guard.
-pm_cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/hermes-dev/pm-uv"
-mkdir -p "$pm_cache_dir" "$HERMES_HOME/cache"
-if [[ ! -e "$HERMES_HOME/cache/uv" && ! -L "$HERMES_HOME/cache/uv" ]]; then
-    ln -s "$pm_cache_dir" "$HERMES_HOME/cache/uv"
+# Older checkouts linked the PM cache to the user's shared cache directory.
+if [[ -L "$XDG_CACHE_HOME/uv" ]]; then
+    printf 'กรุณาย้ายแคชที่ %s กลับเข้าโปรเจกต์ก่อนใช้ ./dev\n' "$XDG_CACHE_HOME/uv" >&2
+    exit 1
 fi
+mkdir -p "$TMPDIR" "$UV_CACHE_DIR"
 
 case "${1:-help}" in
     help|--help|-h)
@@ -83,6 +86,7 @@ HELP
         ;;
     test)
         shift
+        export PYTEST_DEBUG_TEMPROOT="$TMPDIR"
         exec ./scripts/run_tests.sh -j 2 "$@"
         ;;
     *)

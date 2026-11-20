@@ -342,3 +342,7 @@ infografico/
 /pm/.lock.json.lock
 
 apps/desktop/.dist-build*
+
+# Local projects and the checkout-specific macOS launcher.
+/work/
+/Hermes ภาษาไทย.app*

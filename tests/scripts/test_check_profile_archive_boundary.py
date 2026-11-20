@@ -55,3 +55,18 @@ def test_nested_profile_archive_is_also_rejected(tmp_path):
 
     assert result.returncode == 1
     assert "fixtures/fixture.tar.gz" in result.stdout
+
+
+def test_uv_timezone_archive_requires_the_bundled_contents(tmp_path):
+    from importlib.resources import files
+
+    archive = tmp_path / ".hermes-dev/cache/uv/archive-v0/example/dateutil/zoneinfo/dateutil-zoneinfo.tar.gz"
+    archive.parent.mkdir(parents=True)
+    contents = files("dateutil.zoneinfo").joinpath(archive.name).read_bytes()
+    archive.write_bytes(contents)
+    assert _run(tmp_path).returncode == 0
+
+    archive.write_bytes(bytes(len(contents)))
+    result = _run(tmp_path)
+    assert result.returncode == 1
+    assert archive.name in result.stdout

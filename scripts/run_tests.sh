@@ -254,6 +254,7 @@ exec env -i \
   HOME="$HOME" \
   ${WIN_ENV[@]+"${WIN_ENV[@]}"} \
   ${TEST_ENV[@]+"${TEST_ENV[@]}"} \
+  ${PYTEST_DEBUG_TEMPROOT:+PYTEST_DEBUG_TEMPROOT="$PYTEST_DEBUG_TEMPROOT"} \
   TZ=UTC \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \

@@ -26,6 +26,8 @@ def command(name: str) -> str:
 
 
 def check_destination(destination: Path) -> None:
+    if not destination.resolve().is_relative_to(ROOT):
+        raise RuntimeError("กรุณาเลือกตำแหน่งติดตั้งภายในโฟลเดอร์โปรเจกต์")
     if destination.is_symlink():
         raise RuntimeError("ตำแหน่งติดตั้งเป็น symlink; กรุณาเลือกตำแหน่งอื่น")
     if not destination.exists():
@@ -81,8 +83,8 @@ def install(destination: Path) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--destination", type=Path,
-                        default=Path.home() / "Applications" / "Hermes ภาษาไทย.app",
-                        help="ตำแหน่งแอปที่จะติดตั้ง (ค่าเริ่มต้น: Applications ของผู้ใช้)")
+                        default=ROOT / "Hermes ภาษาไทย.app",
+                        help="ตำแหน่งแอปที่จะติดตั้ง (ค่าเริ่มต้น: โฟลเดอร์โปรเจกต์)")
     args = parser.parse_args()
     if os_family() != "darwin":
         parser.error("ตัวเปิดนี้ใช้ได้เฉพาะ macOS")

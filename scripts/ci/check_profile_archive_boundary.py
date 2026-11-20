@@ -11,10 +11,27 @@ Git's index so a generated archive cannot enter a build after checkout.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 from pathlib import Path
 
 _PROFILE_ARCHIVE_SUFFIXES = (".tar.gz", ".tgz")
+
+
+def _bundled_timezone_data(root: Path, path: Path) -> bool:
+    # python-dateutil ships a timezone database inside its wheel. Permit only
+    # its known bytes in this checkout's private uv caches.
+    parts = path.relative_to(root).parts
+    if (parts[:2] != (".hermes-dev", "cache")
+            or len(parts) != 8 or parts[2] not in {"uv", "uv-downloads"}
+            or parts[3] != "archive-v0"
+            or parts[-3:] != ("dateutil", "zoneinfo", "dateutil-zoneinfo.tar.gz")):
+        return False
+    if path.is_symlink() or not path.is_file() or path.stat().st_size != 156400:
+        return False
+    return hashlib.sha256(path.read_bytes()).hexdigest() == (
+        "d3ea52e7b6e968de0d884df1288193596fa95b803db4f92a18279a7398004475"
+    )
 
 
 def find_forbidden_profile_archives(root: Path) -> list[Path]:
@@ -32,7 +49,9 @@ def find_forbidden_profile_archives(root: Path) -> list[Path]:
         ]
         for name in (*dirnames, *filenames):
             if name.casefold().endswith(_PROFILE_ARCHIVE_SUFFIXES):
-                offenders.append((Path(directory) / name).relative_to(root))
+                path = Path(directory) / name
+                if not _bundled_timezone_data(root, path):
+                    offenders.append(path.relative_to(root))
 
     return sorted(offenders, key=lambda path: path.as_posix().casefold())
 
