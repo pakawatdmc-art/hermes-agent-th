@@ -1,7 +1,7 @@
 """Journey: queued followers -> automatic compression -> gateway restart before drain.
 
 One ordinary daemon (real authority, real SQLite, in-process agent loop, loopback model). A turn's
-own preflight compression rotates the transcript while three followers wait behind it; the owner is
+own automatic compression rotates the transcript while three followers wait behind it; the owner is
 stopped before the followers run. After a fresh daemon starts: every admission keeps its identity,
 the followers run once each in FIFO order on the compressed transcript, the turn that compressed
 is never executed twice, and the compression lineage is the one committed before the restart.
@@ -36,7 +36,11 @@ class CompactingModel(BaseHTTPRequestHandler):
         text = next((m.get('content', '') for m in reversed(messages) if m['role'] == 'user'), '')
         if messages:
             self.server.requests.append({'model': body.get('model'), 'text': str(text), 'wire': wire})
-        if body.get('model') == 'original' and len(wire) > 50000:
+        # A fixed number of pressure turns gives the compressor a middle to summarize,
+        # independent of system-prompt language, JSON escaping, and host-specific paths.
+        pressure_turns = sum(m['role'] == 'user' and str(m.get('content', '')).startswith('PRESSURE_')
+                             for m in messages)
+        if body.get('model') == 'original' and pressure_turns >= 8 and 'SUMMARY_RETAINED_FACTS' not in wire:
             payload = json.dumps({'error': {'message': "This model's maximum context length is 64000 tokens. "
                                                        'However, your messages resulted in 70000 tokens.',
                                             'type': 'invalid_request_error', 'code': 'context_length_exceeded'}}).encode()
@@ -87,7 +91,7 @@ def test_followers_survive_compression_and_restart_in_order_exactly_once(tmp_pat
         'model': {'provider': 'custom', 'default': 'original', 'base_url': url, 'context_length': 64000},
         'auxiliary': {'title_generation': {'enabled': False},
                       'compression': {'provider': 'custom', 'model': 'summary', 'base_url': url}},
-        'compression': {'protect_first_n': 1, 'protect_last_n': 2, 'threshold_tokens': 12000,
+        'compression': {'protect_first_n': 1, 'protect_last_n': 2, 'threshold_tokens': 48000,
                         'threshold': 0.5, 'in_place': False},
         'platform_toolsets': {'cli': []}}))
     (home / 'models_dev_cache.json').write_text(json.dumps({'custom': {'id': 'custom', 'models': {
@@ -194,11 +198,17 @@ def test_followers_survive_compression_and_restart_in_order_exactly_once(tmp_pat
         order = [r['text'] for r in peer.requests if r['model'] == 'original' and r['text'] in FOLLOWERS]
         assert order == list(FOLLOWERS), order
         assert executed(compacting['text'][:12]) == before['compacting_requests'], 'compacted turn replayed'
+        # The head and tail retained by compression depend on the prompt and token budget.
+        # Check every pressure message that actually left the transcript, including assistant replies.
+        retained = {content for _, _, content in before['compacted']}
+        removed = {content for _, _, content in transcript(sid)
+                   if isinstance(content, str) and content.startswith(('PRESSURE_', 'ACK_PRESSURE_'))
+                   and content not in retained}
+        assert any(text.startswith('PRESSURE_') for text in removed), "the fixture must compact an earlier user turn"
         for name in FOLLOWERS:
             wire = next(r['wire'] for r in peer.requests if r['text'] == name)
-            # protect_first_n keeps PRESSURE_0 verbatim; the compacted middle is only inside the summary.
             turns = [str(m.get('content', '')) for m in json.loads(wire)]
-            assert 'SUMMARY_RETAINED_FACTS' in wire and not any(t.startswith('PRESSURE_1 ') for t in turns), name
+            assert 'SUMMARY_RETAINED_FACTS' in wire and removed.isdisjoint(turns), name
         settled = admissions()
         assert {r['target_session_id'] for r in settled} == {sid}
         assert [r['request_id'] for r in settled][-3:] == list(FOLLOWERS)
