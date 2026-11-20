@@ -38,6 +38,7 @@ on:
   push:
     branches: [main]
     paths:
+      - '.github/workflows/js-autofix.yml'
       - '**/*.js'
       - '**/*.cjs'
       - '**/*.mjs'
@@ -121,19 +122,26 @@ jobs:
           fi
 
       - name: Upload patch artifact
+        id: artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: js-fix-patch
           path: js-fix.patch
-          retention-days: 1
+          retention-days: 7
           include-hidden-files: true
+
+      - name: Link the formatting patch
+        if: steps.produce-patch.outputs.has-fixes == 'true'
+        env:
+          PATCH_URL: ${{ steps.artifact.outputs.artifact-url }}
+        run: echo "[Download the formatting patch]($PATCH_URL)" >> "$GITHUB_STEP_SUMMARY"
 
   apply-patch:
     name: Apply patch
     needs: generate-patch
-    # Skip entirely when generate-patch found no fixes — saves a runner,
-    # avoids a redundant checkout/download, and keeps the job graph honest.
-    if: needs.generate-patch.outputs.has-fixes == 'true'
+    if: >-
+      needs.generate-patch.outputs.has-fixes == 'true' &&
+      (!github.event.repository.fork || vars.JS_AUTOFIX_OPEN_PR == 'true')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: trusted-automation

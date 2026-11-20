@@ -527,6 +527,7 @@ from pathlib import Path
 import hermes_cli.sqlite_safe_read as ssr
 from fastapi import HTTPException
 from hermes_cli.web_server_sessions import _open_session_db_at_path
+from persistence.core.admin import BROWSE_RECONCILE_BUDGET_S
 
 phase = sys.argv[2]
 original = ssr.connect_tracked
@@ -541,6 +542,10 @@ class SlowConnection:
     def __getattr__(self, name):
         return getattr(self._conn, name)
     def set_progress_handler(self, handler, n):
+        if phase == "begin" and handler is not None:
+            # Expire after arming but before BEGIN IMMEDIATE acquires a transaction.
+            time.sleep(BROWSE_RECONCILE_BUDGET_S + 0.05)
+            return self._conn.set_progress_handler(handler, 1)
         def slow():
             time.sleep(0.01)
             return handler() if handler is not None else 0
@@ -576,7 +581,7 @@ except HTTPException as exc:
 
 
 @pytest.mark.platforms("linux", "macos")
-@pytest.mark.parametrize("phase", ["ddl"])
+@pytest.mark.parametrize("phase", ["ddl", "begin"])
 def test_slow_browse_reconcile_gives_up_inside_its_budget_and_boot_waits_it_out(tmp_path, phase):
     """R2-2: the busy timeout bounds lock contention, not SQL execution. A slow DDL must be
     interrupted at the browse budget (rolled back, retryable 503), and gateway boot's wait must
