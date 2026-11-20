@@ -541,10 +541,13 @@ class SlowConnection:
         self.set_progress_handler(None, 0)
     def __getattr__(self, name):
         return getattr(self._conn, name)
-    def set_progress_handler(self, handler, n):
-        if phase == "begin" and handler is not None:
-            # Expire after arming but before BEGIN IMMEDIATE acquires a transaction.
+    def execute(self, statement, *args):
+        if phase == "begin" and statement == "BEGIN IMMEDIATE":
+            # Delay this statement specifically, after setup but before a transaction exists.
             time.sleep(BROWSE_RECONCILE_BUDGET_S + 0.05)
+        return self._conn.execute(statement, *args)
+    def set_progress_handler(self, handler, n):
+        if phase == "begin":
             return self._conn.set_progress_handler(handler, 1)
         def slow():
             time.sleep(0.01)
