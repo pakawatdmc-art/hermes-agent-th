@@ -72,6 +72,8 @@ let handles: Handles
 // One app page: fresh imports of the composer hooks and stores (as a reload or relaunch gets).
 // Opening the session resumes it: the owner's snapshot lists its pending admissions (`pending`).
 async function openPage(onSubmit: ChatBarProps['onSubmit'], pending: unknown[] = [], options: PageOptions = {}) {
+  const { setRuntimeI18nLocale } = await import('@/i18n/runtime')
+  setRuntimeI18nLocale('en')
   const { reconcilePendingSubmissions } = await import('@/store/pending-submissions')
   const { useComposerDraft } = await import('./use-composer-draft')
   const { useComposerSubmit } = await import('./use-composer-submit')

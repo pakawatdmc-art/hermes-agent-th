@@ -47,8 +47,6 @@ if _bootstrap_root not in sys.path:
 from hermes_cli import _startup_fast
 import itertools
 
-from agent.i18n import t
-
 # A literal ``~``/``$VAR`` in HERMES_HOME (fish, or any quoted value) must become absolute
 # before the first reader — otherwise it resolves against cwd and scaffolds <cwd>/~/.hermes.
 _startup_fast.normalize_hermes_home_env()
@@ -668,6 +666,7 @@ from hermes_cli.main_dashboard import (
 from hermes_cli.main_dashboard import (  # frozen updater surface: update_cmd*.py resolve these via _m()
     _respawn_dashboard_processes,
 )
+from agent.i18n import t
 from hermes_cli.main_provider_setup import (
     _GENERIC_API_KEY_PROVIDERS,
     _aux_config_menu,

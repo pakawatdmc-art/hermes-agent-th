@@ -258,7 +258,7 @@ def provision_profile(request: ProfileCreateRequest) -> ProvisionResult:
     if request.mirror_credentials:
         from hermes_cli.auth import _global_auth_file_path
         kept_root = step("launch credentials", lambda: mirror_launch_credentials(
-            path, result.mirrored, share_auth=request.share_auth, clone_channels=request.clone_channels), default=())
+            path, result.mirrored, fresh=request.fresh, share_auth=request.share_auth, clone_channels=request.clone_channels), default=())
         if kept_root and _global_auth_file_path() is not None:
             # A named launch profile's own subscription logins can't be copied (single-use refresh
             # tokens); the copy reads the default profile's for those providers instead.
@@ -423,8 +423,8 @@ def _env_over_stub(src: Path, dst: Path) -> bool:
     return bool(load_env_file(src)) and not load_env_file(dst)
 
 
-def _mirror_voice_sections(path: Path) -> bool:
-    from hermes_cli.config import read_user_config_raw, save_config
+def _mirror_voice_sections(path: Path, *, fresh: bool) -> bool:
+    from hermes_cli.config import _deep_merge, read_user_config_raw, save_config
     from hermes_cli.config_backend import CONFIG_MUTATION_LOCK
     from tui_gateway.launch_profile_policy import profile_config_scope
     # RAW reads: the launch side keeps its ${VAR} refs (never its secrets), and load_config() on the
@@ -435,10 +435,16 @@ def _mirror_voice_sections(path: Path) -> bool:
         return False
     with profile_config_scope(path), CONFIG_MUTATION_LOCK:
         profile_raw = read_user_config_raw() or {}
-        missing = {k: v for k, v in sections.items() if k not in profile_raw}
-        if missing:
-            save_config({**profile_raw, **missing})
-    return bool(missing)
+        if fresh:
+            # Fresh sections contain only installation defaults. Keep their language and
+            # voice where the launch profile has no preference. Clones keep explicit settings.
+            updated = _deep_merge(profile_raw, sections)
+        else:
+            updated = {**sections, **profile_raw}
+        if updated == profile_raw:
+            return False
+        save_config(updated)
+    return True
 
 
 def inherit_launch_model(path: Path) -> bool:
@@ -478,7 +484,7 @@ def inherit_launch_model(path: Path) -> bool:
 
 
 
-def mirror_launch_credentials(path: Path, mirrored: dict[str, Any], *, share_auth: bool = False,
+def mirror_launch_credentials(path: Path, mirrored: dict[str, Any], *, fresh: bool = False, share_auth: bool = False,
                               clone_channels: bool = False) -> tuple[str, ...]:
     """Copy the launch profile's .env / auth.json / voice sections into a new profile, recording each
     item in ``mirrored`` (best-effort per item). ``share_auth`` skips the auth copy when the launch
@@ -508,5 +514,5 @@ def mirror_launch_credentials(path: Path, mirrored: dict[str, Any], *, share_aut
                 stripped = strip_cloned_single_use_oauth_grants(path)
                 return tuple(sorted({*stripped["pool"], *stripped["providers"]}))
             kept_root = _try("OAuth grant strip", _strip_grants, ()) or ()
-    mirrored["voice"] = _try("voice sections", lambda: _mirror_voice_sections(path), False)
+    mirrored["voice"] = _try("voice sections", lambda: _mirror_voice_sections(path, fresh=fresh), False)
     return kept_root

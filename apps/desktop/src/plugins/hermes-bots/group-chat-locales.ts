@@ -52,7 +52,7 @@ function arabicBots(count: number, dual = 'روبوتان'): string {
 export const GROUP_CHAT_LOCALES = {
   th: {
     disbandDescSuffix: count =>
-      ` ออกจากบอท ${count} ตัวและล้างบันทึกห้องที่ใช้ร่วมกัน โดยเก็บบอทและบทสนทนาประจำกลุ่มของแต่ละตัวไว้`,
+      ` ออกจากบอท ${count} ตัวและล้างบันทึกแชตกลุ่มที่ใช้ร่วมกัน โดยเก็บบอทและบทสนทนาประจำกลุ่มของแต่ละตัวไว้`,
     disbandDescPrefix: 'นำกลุ่ม ',
     availableCount: (available, total) => `พร้อมใช้งาน ${available} จาก ${total}`,
     allHeldStatus: count => `บอททั้ง ${count} ตัวพักการทำงานอยู่`,

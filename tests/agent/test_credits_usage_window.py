@@ -1158,7 +1158,8 @@ class TestPicker:
 
         monkeypatch.setattr("hermes_cli.curses_ui.curses_radiolist", fake_radiolist)
         picker._prompt_model_selection(["a/m1", "b/m2"])
-        assert picker._CUSTOM_LABEL in captured["choices"]
+        from agent.i18n import t
+        assert t("cli.auth.model_custom") in captured["choices"]
 
     def test_account_payload_usage_window_is_parsed(self):
         from hermes_cli import nous_account as na

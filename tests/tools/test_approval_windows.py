@@ -226,9 +226,10 @@ class TestPowerShellPositionalScriptAndAbbreviatedSwitches:
         "\n ssh -x" * 3000,
     ])
     def test_repeated_launcher_words_scan_in_linear_time(self, command):
-        start = time.perf_counter()
+        # Measure scanner CPU work independently of scheduling on shared CI cores.
+        start = time.thread_time()
         assert not _is_dangerous(command)
-        assert time.perf_counter() - start < 2, command[:30]
+        assert time.thread_time() - start < 2, command[:30]
 
 
 class TestDriveLetterRoots:
@@ -321,9 +322,10 @@ class TestDriveLetterRoots:
         "rm -rf \"C:\"" + "\"/." * 1300 + "x",
     ])
     def test_quoted_collapse_tail_scans_in_linear_time(self, cmd):
-        start = time.perf_counter()
+        # Measure scanner CPU work independently of scheduling on shared CI cores.
+        start = time.thread_time()
         assert detect_hardline_command(cmd) == (False, None)
-        assert time.perf_counter() - start < 2, cmd[:30]
+        assert time.thread_time() - start < 2, cmd[:30]
 
     @pytest.mark.parametrize("cmd", ["rm -r C:\\* -Include *.tmp", "rm -r C:/ -Include:*.log -Force"])
     def test_rm_alias_with_narrowing_include_stays_approvable(self, cmd):

@@ -1,8 +1,12 @@
 import { configure } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
+import { setRuntimeI18nLocale } from './src/i18n/runtime'
 import { clearPlaybackSourceCache } from './src/lib/playback-source-cache'
 import { InertResizeObserver } from './src/test/jsdom'
+
+// Component contracts use English unless the test selects a different profile language.
+setRuntimeI18nLocale('en')
 
 // Shared tooltips measure their arrow through Radix's useSize hook.
 // Geometry assertions still belong in a real browser, not this inert observer. Assigned,

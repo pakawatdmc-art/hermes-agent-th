@@ -6,8 +6,6 @@ gateway, sessions, …) is built by ``hermes_cli/subcommands/<group>.py`` and wi
 """
 
 import argparse
-
-from agent.i18n import t
 import difflib
 import re
 import sys
@@ -331,6 +329,24 @@ class HermesArgumentParser(argparse.ArgumentParser):
         super()._check_value(action, value)
 
 
+class _TopLevelHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    """Resolve catalog strings only when help is displayed, after profile selection."""
+
+    def add_text(self, text):
+        if text in ("cli.setup.help.description", "cli.setup.help.examples"):
+            from agent.i18n import t
+            text = t(text)
+        super().add_text(text)
+
+    def add_argument(self, action):
+        if action.help == "cli.setup.help.command":
+            from copy import copy
+            from agent.i18n import t
+            action = copy(action)
+            action.help = t(action.help)
+        super().add_argument(action)
+
+
 def build_top_level_parser():
     """Build the top-level parser, the subparsers action, and the ``chat`` subparser.
 
@@ -339,12 +355,12 @@ def build_top_level_parser():
     ``subparsers.add_parser(...)``.
     """
     parser = HermesArgumentParser(
-        prog="hermes", description=t("cli.setup.help.description"),
-        formatter_class=argparse.RawDescriptionHelpFormatter, epilog=t("cli.setup.help.examples"))
+        prog="hermes", description="cli.setup.help.description",
+        formatter_class=_TopLevelHelpFormatter, epilog="cli.setup.help.examples")
     _add_top_level_flags(parser)
     # metavar keeps the usage line to ``hermes [...] <command>`` instead of the brace list of
     # every subcommand name; ``hermes --help`` still lists each command with its help row.
-    subparsers = parser.add_subparsers(dest="command", help=t("cli.setup.help.command"), metavar="<command>")
+    subparsers = parser.add_subparsers(dest="command", help="cli.setup.help.command", metavar="<command>")
     return parser, subparsers, _build_chat_parser(subparsers)
 
 

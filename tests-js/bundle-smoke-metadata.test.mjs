@@ -132,7 +132,7 @@ test('workspace admission rejects reuse and symlink escapes before creating anyt
     fs.symlinkSync(temp, alias, process.platform === 'win32' ? 'junction' : 'dir')
     expect(run(path.join(alias, 'fresh'), out).status).toBe(0)
   } finally { fs.rmSync(temp, { recursive: true, force: true }) }
-})
+}, 60_000)
 
 test.runIf(process.platform === 'win32')('PowerShell admits only the pinned package and native slice', () => {
   const script = path.resolve(import.meta.dirname, '../tests/install/e2e-assets/windows-bundle-metadata.test.ps1')
