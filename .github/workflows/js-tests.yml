@@ -12,17 +12,11 @@ on:
 jobs:
   check:
     name: JS & TS checks
-    # One 32-core job replaces a 14-leg matrix. The matrix spread about 612s
-    # of check payload over 4-core runners. It paid about 371s of repeated
-    # setup to do it: 14 checkouts, 14 node installs, 14 node_modules
-    # restores.
-    #
-    # One larger runner installs one time. vitest, tsc and eslint each size
-    # their own worker pool from the core count.
-    runs-on: blacksmith-32vcpu-ubuntu-2404
-    timeout-minutes: 30
+    # Share the locked workspace install across all JS checks.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
-      - uses: useblacksmith/checkout@25227e61ff9dafe400e22fa487b673eac4e4409a  # v1
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7.0.1
         with:
           ref: ${{ inputs.commit }}
       - name: Set up the locked JS build toolchain

@@ -151,16 +151,9 @@ events made with the default `GITHUB_TOKEN`. `workflow_dispatch` and
 
 ### Runners
 
-`blacksmith-*` labels are Blacksmith runners (`4vcpu` for small jobs,
-`32vcpu` for test suites and builds, `-arm` for native arm64). `macos-15`,
-`windows-latest` (standard, free on a public repository), `windows-latest-32-core`
-and `windows-latest-32-arm-core` (larger, billed) are GitHub-hosted. The Windows
-install/update legs (`install-e2e-windows-run.yml`'s `e2e` job) use `windows-latest`.
-No workflow runs on Intel macOS. Jobs that only run `docker buildx imagetools`
-(manifest lists, alias promotion) set up buildx with `docker/setup-buildx-action`
-and `driver: docker`, never `useblacksmith/setup-docker-builder`: its no-`cache-key`
-fallback builder marks docker.io plain-HTTP, so the manifest PUT is redirected into a
-GET and the commit 404s.
+Jobs use standard GitHub-hosted runners. Linux and Windows builds select x64 or
+arm64 runners to match the artifact. macOS jobs run on Apple silicon. Docker
+image builds use Docker Buildx. Manifest and alias jobs use its Docker driver.
 
 ---
 
