@@ -29,7 +29,13 @@ export const TimelineTimestamp: FC<{
   const { locale } = useI18n()
 
   const preciseDateTime = new Intl.DateTimeFormat(locale, {
-    day: 'numeric', fractionalSecondDigits: 3, hour: 'numeric', minute: '2-digit', month: 'short', second: '2-digit', year: 'numeric',
+    day: 'numeric',
+    fractionalSecondDigits: 3,
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
+    second: '2-digit',
+    year: 'numeric',
     ...(locale === 'th' ? { calendar: 'gregory', era: 'short', hourCycle: 'h23' } : {})
   })
 

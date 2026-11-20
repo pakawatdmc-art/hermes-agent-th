@@ -418,7 +418,10 @@ export function SidebarSessionsSection({
     (items: SessionInfo[]) => {
       const entries = flattenSessionsWithBranches(items)
 
-      const rows = grouping === 'date' ? groupEntriesByRecency(entries, undefined, localeWeekStartDay(locale)) : toSessionRows(entries)
+      const rows =
+        grouping === 'date'
+          ? groupEntriesByRecency(entries, undefined, localeWeekStartDay(locale))
+          : toSessionRows(entries)
 
       return hideCollapsedGroupRows(rows, isListGroupOpen).map(row => renderListRow(row, false))
     },

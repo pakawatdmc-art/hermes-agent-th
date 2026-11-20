@@ -31,7 +31,11 @@ const HoverTimeDetail: FC<{ ms: number }> = ({ ms }) => {
   const { locale } = useI18n()
   const full = fmtFullDateTime.format(new Date(ms), locale)
 
-  return <span className="tabular-nums">{Date.now() - ms < DAY ? `${relativeTime(ms, undefined, locale)} · ${full}` : full}</span>
+  return (
+    <span className="tabular-nums">
+      {Date.now() - ms < DAY ? `${relativeTime(ms, undefined, locale)} · ${full}` : full}
+    </span>
+  )
 }
 
 const clockOnly = (time: string) => time

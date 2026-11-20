@@ -58,7 +58,9 @@ it('translates every shipped stock body at the same personality and rotation pos
       expect(body).toBeTruthy()
       expect(body).not.toBe(entry.body)
 
-      if (locale === 'th') {expect(body).toMatch(/[ก-๙]/)}
+      if (locale === 'th') {
+        expect(body).toMatch(/[ก-๙]/)
+      }
 
       if (CJK_LOCALES.has(locale)) {
         expect(body).toMatch(/[\u3040-\u30ff\u3400-\u9fff]/)

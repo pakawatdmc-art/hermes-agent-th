@@ -42,12 +42,20 @@ describe('dates follow the chosen UI language', () => {
   })
 })
 
-it.each(['th', 'en', 'ja', 'zh', 'zh-hant', 'ar', 'ru', 'fr', 'de', 'es'])('formats relative times in the selected %s locale', locale => {
-  const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
+it.each(['th', 'en', 'ja', 'zh', 'zh-hant', 'ar', 'ru', 'fr', 'de', 'es'])(
+  'formats relative times in the selected %s locale',
+  locale => {
+    const format = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
 
-  for (const [unit, size] of [['second', SECOND], ['minute', MINUTE], ['hour', HOUR], ['day', DAY]] as const) {
-    for (const count of [-2, 2]) {
-      expect(relativeTime(count * size, 0, locale)).toBe(format.format(count, unit))
+    for (const [unit, size] of [
+      ['second', SECOND],
+      ['minute', MINUTE],
+      ['hour', HOUR],
+      ['day', DAY]
+    ] as const) {
+      for (const count of [-2, 2]) {
+        expect(relativeTime(count * size, 0, locale)).toBe(format.format(count, unit))
+      }
     }
   }
-})
+)

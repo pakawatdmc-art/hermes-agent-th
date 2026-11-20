@@ -14,6 +14,7 @@ async function loadStore() {
 
   const { setRuntimeI18nLocale } = await import('@/i18n/runtime')
   setRuntimeI18nLocale('en')
+
   return import('./keep-awake')
 }
 

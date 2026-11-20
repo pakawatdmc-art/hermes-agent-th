@@ -736,7 +736,9 @@ function FeedTabs({
                 <li className="flex flex-col gap-0.5" key={comment.id}>
                   <div className="flex items-baseline gap-2 text-[0.75rem]">
                     <span className="font-medium text-(--ui-text-secondary)">{comment.author}</span>
-                    <span className="text-[0.625rem] text-(--ui-text-quaternary)">{ago(comment.created_at, locale)}</span>
+                    <span className="text-[0.625rem] text-(--ui-text-quaternary)">
+                      {ago(comment.created_at, locale)}
+                    </span>
                   </div>
                   <TaskMarkdown text={comment.body} />
                 </li>
@@ -1162,7 +1164,9 @@ export function TaskDrawer({
                     ) : null
                   )}
                 {task.created_by && <MetaRow label={k.metaCreatedBy}>{task.created_by}</MetaRow>}
-                {ago(task.created_at, locale) && <MetaRow label={k.metaCreated}>{ago(task.created_at, locale)}</MetaRow>}
+                {ago(task.created_at, locale) && (
+                  <MetaRow label={k.metaCreated}>{ago(task.created_at, locale)}</MetaRow>
+                )}
                 {running && task.worker_pid ? <MetaRow label={k.metaWorkerPid}>{task.worker_pid}</MetaRow> : null}
                 <EstimateSection id={task.id} />
 

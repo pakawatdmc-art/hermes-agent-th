@@ -470,7 +470,8 @@ export const th: BotsMessages = {
     heldMembersStatus: members => `พักการทำงาน: ${members}`,
     holdReleaseHint: 'กล่าวถึงบอทที่พักอยู่ หรือส่ง @all resume เพื่อให้ทำงานต่อ',
     needsYourInput: 'บอทในแชตกลุ่มนี้ต้องการข้อมูลจากคุณ',
-    noMembersToSend: group => `${group} ไม่มีสมาชิกที่ส่งข้อความถึงได้ เพิ่มบอท หรือเปิดแชตกลุ่มใหม่หากกำลังโหลดสมาชิกอยู่`,
+    noMembersToSend: group =>
+      `${group} ไม่มีสมาชิกที่ส่งข้อความถึงได้ เพิ่มบอท หรือเปิดแชตกลุ่มใหม่หากกำลังโหลดสมาชิกอยู่`,
     pictureGenerationFailed: 'สร้างรูปภาพกลุ่มไม่สำเร็จ',
     nameTaken: name => `มีกลุ่มชื่อ “${name}” อยู่แล้ว`,
     you: 'คุณ',
