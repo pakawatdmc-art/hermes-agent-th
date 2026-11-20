@@ -62,6 +62,8 @@ export const thLocalModels: Translations['settings']['localModels'] = {
   useAction: 'ใช้',
   activePill: 'ค่าเริ่มต้น',
   updateTitle: 'มีอัปเดตระบบประมวลผล',
+  updateSameBuildDetail: tag =>
+    `แพ็กเกจ llama.cpp ${tag} ของ Hermes มีไฟล์ที่จำเป็นเพิ่มเข้ามา การอัปเดตจะดาวน์โหลดเอนจินใหม่ โดยยังใช้โมเดลได้ระหว่างดาวน์โหลด`,
   updateDetail: (next, current) =>
     `llama.cpp บิลด์ใหม่ (${next}) พร้อมติดตั้งแล้ว ขณะนี้คุณใช้ ${current} โมเดลยังทำงานต่อได้ระหว่างดาวน์โหลด`,
   updateAction: 'อัปเดตระบบประมวลผล',

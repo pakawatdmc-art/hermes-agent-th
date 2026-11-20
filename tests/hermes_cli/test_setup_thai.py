@@ -65,8 +65,8 @@ def test_first_install_menu_reads_language_at_invocation(thai_home, monkeypatch)
     monkeypatch.setattr(setup, "prompt_choice", cancel)
     args = SimpleNamespace(reset=False, reconfigure=False, quick=False, non_interactive=False, portal=False, section=None)
     setup.run_setup_wizard(args)
-    assert menus[-1][0] == "ต้องการตั้งค่า Hermes แบบใด?"
-    assert "ตั้งค่าแบบรวดเร็ว" in menus[-1][1][0]
+    assert menus[-1][0] == "ต้องการใช้โมเดลจากแหล่งใดกับ Hermes?"
+    assert any("API key หรือสมาชิกของฉัน" in choice for choice in menus[-1][1])
 
     english = thai_home / "english"
     english.mkdir()
@@ -74,8 +74,8 @@ def test_first_install_menu_reads_language_at_invocation(thai_home, monkeypatch)
     token = set_hermes_home_override(english)
     try:
         setup.run_setup_wizard(args)
-        assert menus[-1][0] == "How would you like to set up Hermes?"
-        assert "Quick Setup" in menus[-1][1][0]
+        assert menus[-1][0] == "How do you want to power Hermes?"
+        assert any("Use my own API key" in choice for choice in menus[-1][1])
     finally:
         reset_hermes_home_override(token)
     assert i18n.get_language() == "th"

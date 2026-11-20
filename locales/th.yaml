@@ -167,10 +167,10 @@ gateway.compress.codex_incomplete: ⚠️ Codex app-server ย่อบริบ
 gateway.debug.upload_failed: '✗ อัปโหลดรายงานวินิจฉัยไม่สำเร็จ: {error}'
 gateway.debug.header: '**อัปโหลดรายงานวินิจฉัยแล้ว:**'
 gateway.debug.auto_delete: ⏱ ข้อความที่อัปโหลดจะถูกลบอัตโนมัติใน 6 ชั่วโมง
-gateway.debug.full_logs_hint: หากต้องการอัปโหลดบันทึกทั้งหมด ให้ใช้ `hermes debug share` จาก CLI
+gateway.debug.full_logs_hint: "สรุปนี้ไม่มีข้อความจากบันทึก หากฝ่ายสนับสนุนต้องการบันทึกฉบับเต็ม ให้รัน `hermes debug share --nous` ใน CLI เพื่อส่งไปยังพื้นที่จัดเก็บส่วนตัว"
 gateway.debug.share_hint: ส่งลิงก์เหล่านี้ให้ทีม Hermes เพื่อขอความช่วยเหลือ
 gateway.debug.report_label: รายงาน
-gateway.debug.local_refused: '`/debug local` เก็บรายงานบนเครื่องที่รัน Hermes จึงใช้ผ่านแชตไม่ได้ ส่ง `/debug` เพื่ออัปโหลดรายงานสรุป'
+gateway.debug.local_refused: "`/debug local` เก็บรายงานไว้บนเครื่องที่รัน Hermes จึงเปิดจากแชตไม่ได้ ใช้ `/debug upload` เพื่ออัปโหลดรายงานสรุป"
 gateway.deny.stale: ❌ ไม่อนุญาตคำสั่ง (คำขออนุญาตไม่เป็นปัจจุบันแล้ว)
 gateway.deny.no_pending: ไม่มีคำสั่งที่รอปฏิเสธ
 gateway.deny.denied_singular: ❌ ไม่อนุญาตคำสั่ง
@@ -657,8 +657,6 @@ gateway.notify.media_delivery_failed_with_name: ⚠️ ส่งไฟล์แ�
 gateway.notify.delivery_failed_retry: ⚠️ ส่งข้อความไม่สำเร็จหลังพยายามหลายครั้ง กรุณาลองอีกครั้ง —
   ประมวลผลคำขอของคุณแล้ว แต่ส่งคำตอบไม่ได้
 gateway.notify.plain_fallback_prefix: "(จัดรูปแบบคำตอบไม่สำเร็จ แสดงเป็นข้อความธรรมดา:)\n\n{content}"
-gateway.notify.turn_error_no_details: ไม่มีรายละเอียด
-gateway.notify.turn_error_detailed: "ขออภัย เกิดข้อผิดพลาด ({error_type})\n{error_detail}\nลองอีกครั้ง หรือใช้ /reset เพื่อเริ่มบทสนทนาใหม่"
 gateway.notify.turn_error: ขออภัย เกิดข้อผิดพลาด
 gateway.notify.context_injection_refused: ปฏิเสธการแทรกบริบท
 gateway.notify.no_home_channel: "📬 ยังไม่ได้ตั้งช่องหลักสำหรับ {platform} ช่องหลักคือช่องที่ Hermes ใช้ส่งผลลัพธ์งานตามกำหนดเวลาและข้อความข้ามแพลตฟอร์ม\n\
@@ -1173,8 +1171,6 @@ platform.discord.command.skill.arg_args: อาร์กิวเมนต์ส
 platform.discord.command.skill.unknown: 'ไม่รู้จักทักษะ: `{name}` เริ่มพิมพ์เพื่อดูคำแนะนำการเติมข้อความ'
 platform.discord.command.auto_args_description: 'อาร์กิวเมนต์: {args_hint}'
 platform.discord.command.auto_description_fallback: เรียก /{name}
-platform.discord.limits.response_truncated: ⚠️ **ตัดคำตอบแล้ว** — คำตอบนี้เกินขีดจำกัดการส่ง ({max_messages} ข้อความ)
-  ไม่ได้ส่ง {dropped_chars} ตัวอักษร; ดูคำตอบฉบับเต็มได้ในบันทึกบทสนทนา
 platform.discord.forum.default_title: โพสต์ใหม่
 platform.discord.voice.ack_1: ขอตรวจสอบเรื่องนี้ก่อน
 platform.discord.voice.ack_2: กรุณารอสักครู่
@@ -1568,7 +1564,7 @@ slash.copy.description: คัดลอกคำตอบล่าสุดข�
 slash.paste.description: แนบรูปภาพจากคลิปบอร์ด
 slash.image.description: แนบไฟล์รูปภาพในเครื่องสำหรับพรอมป์ต์ถัดไป
 slash.version.description: ดูรุ่นของ Hermes Agent
-slash.debug.description: อัปโหลดรายงานวินิจฉัย (ข้อมูลระบบและบันทึก) แล้วรับลิงก์ที่แชร์ได้
+slash.debug.description: "ดูรายละเอียดความเป็นส่วนตัวของรายงานสรุปเวอร์ชัน ชื่อการตั้งค่า และจำนวนข้อผิดพลาด (ไม่มีข้อความจากบันทึก) ใช้ /debug upload เพื่อแชร์ลิงก์"
 slash.quit.description: ออกจาก CLI (ใช้ --delete เพื่อลบประวัติสนทนาด้วย)
 cli.modern.thought_for: ใช้เวลาคิด {seconds} วินาที
 cli.modern.thought: คิดแล้ว
@@ -3653,7 +3649,7 @@ tips.t245: โปรไฟล์แยกสถานะ Hermes ผ่าน HER
 tips.t246: ตัวแปร HERMES_HOME_MODE (เลขฐานแปด เช่น 0701) กำหนดสิทธิ์ไดเรกทอรีเองเพื่อให้เว็บเซิร์ฟเวอร์เข้าถึงได้
 tips.t247: 'โหมดคอนเทนเนอร์: วาง .container-mode ใน HERMES_HOME แล้ว CLI บนโฮสต์จะเข้าไปทำงานในคอนเทนเนอร์อัตโนมัติ'
 tips.t248: 'Ctrl+C มีลำดับความสำคัญ 5 ระดับ: ยกเลิกการบันทึก → ยกเลิกคำถาม → ยกเลิกตัวเลือก → ขัดจังหวะเอเจนต์ → ออก'
-tips.t249: ทุกการขัดจังหวะขณะเอเจนต์ทำงานถูกบันทึกพร้อมเวลาใน interrupt_debug.log ของไดเรกทอรีหลัก Hermes
+tips.t249: "การขัดจังหวะระหว่างเอเจนต์ทำงานจะบันทึกไว้ใน agent.log ดูได้ด้วย `hermes logs` เปิด HERMES_DEBUG_INTERRUPT=1 เพื่อดูรายละเอียด"
 tips.t250: BROWSER_CDP_URL เชื่อมเครื่องมือเบราว์เซอร์กับเบราว์เซอร์ตระกูล Chromium ที่เปิดอยู่ — รับ WebSocket, HTTP
   หรือ host:port
 tips.t251: BROWSERBASE_ADVANCED_STEALTH=true เปิดการหลีกเลี่ยงการตรวจจับขั้นสูงด้วย Chromium ที่ปรับแต่ง (แผน Scale)
@@ -3761,7 +3757,7 @@ tips.t342: /toolsets แสดงชุดเครื่องมือที�
 tips.t343: /voice tts เปิด/ปิดโหมด TTS อย่างเดียว — เอเจนต์ตอบด้วยเสียง แต่คุณยังพิมพ์พรอมป์ต์
 tips.t344: /reload-skills สแกนโฟลเดอร์ skills ของ Hermes ใหม่ เพื่อให้ทักษะที่วางเพิ่มปรากฏโดยไม่เริ่มบทสนทนาใหม่
 tips.t345: /indicator kaomoji|emoji|unicode|ascii เลือกรูปแบบตัวบอกสถานะไม่ว่างของ TUI ขณะเอเจนต์ทำงาน
-tips.t346: /debug อัปโหลดชุดข้อมูลสนับสนุน (ข้อมูลระบบ + บันทึก) และคืนลิงก์ที่แชร์ได้ — ใช้ในแชทได้ด้วย
+tips.t346: "ใช้ /debug upload เพื่อส่งสรุปเวอร์ชัน ชื่อการตั้งค่า และจำนวนข้อผิดพลาด แล้วรับลิงก์สำหรับแชร์ ใช้ในแชตได้ โดยไม่ส่งข้อความจากบันทึก"
 tips.t347: 'hermes -z "<prompt>" ทำคำขอครั้งเดียวแบบเรียบง่ายที่สุด: ส่งเฉพาะคำตอบสุดท้ายไป stdout — เหมาะกับการต่อไปป์ในสคริปต์'
 tips.t348: hermes chat --pass-session-id แทรกรหัสบทสนทนาในพรอมป์ต์ระบบเพื่อให้เอเจนต์อ้างถึงตัวเองได้
 tips.t349: hermes chat --image path/to/pic.png แนบภาพในเครื่องกับคำขอ -q ครั้งเดียวโดยไม่ต้องอัปโหลดแยก
@@ -4114,7 +4110,7 @@ cli.auth.model_number_required: "กรุณากรอกหมายเล�
 cli.auth.model_input: "รับ"
 cli.auth.model_output: "ตอบ"
 cli.auth.model_cache: "แคช"
-cli.setup.help.examples: "\nตัวอย่าง:\n    hermes                        เริ่มสนทนาแบบโต้ตอบ\n    hermes chat -q \"สวัสดี\"        ส่งคำถามครั้งเดียว\n    hermes --tui                  เปิดหน้าจอ Terminal แบบใหม่\n    hermes --cli                  เปิดหน้าจอ Terminal แบบคลาสสิก\n    hermes -c                     สนทนาต่อจากครั้งล่าสุด\n    hermes -c \"งานของฉัน\"          สนทนาต่อตามชื่อบทสนทนา\n    hermes --resume <session_id>  สนทนาต่อจากรหัสบทสนทนาที่ระบุ\n    hermes --resume latest        สนทนาต่อจากครั้งล่าสุด (เหมือน -c)\n    hermes --tui --resume latest --in ./dir   สนทนาต่อจากงานล่าสุดใน ./dir ด้วย TUI\n    hermes setup                  เปิดตัวช่วยตั้งค่า\n    hermes logout                 ล้างข้อมูลเข้าสู่ระบบที่บันทึกไว้\n    hermes auth add <provider>    เพิ่มข้อมูลเข้าสู่ระบบในกลุ่มบัญชี\n    hermes auth list              ดูข้อมูลเข้าสู่ระบบในกลุ่มบัญชี\n    hermes auth remove <p> <t>    นำข้อมูลเข้าสู่ระบบออกตามลำดับ รหัส หรือชื่อ\n    hermes auth reset <p> [t]     ล้างสถานะโควตาหมดของผู้ให้บริการหรือบัญชี\n    hermes auth priority <p> <t> <n>  เปลี่ยนลำดับบัญชีเป็น n (0 = ลองก่อน)\n    hermes auth refresh <p> [t]   ต่ออายุ OAuth และล้างช่วงพักบัญชี\n    hermes model                  เลือกโมเดลเริ่มต้น\n    hermes fallback [list]        ดูลำดับผู้ให้บริการสำรอง\n    hermes fallback add           เพิ่มผู้ให้บริการสำรอง\n    hermes fallback remove        นำผู้ให้บริการสำรองออก\n    hermes config                 ดูการตั้งค่า\n    hermes config edit            เปิดการตั้งค่าใน $EDITOR\n    hermes config set model gpt-4 กำหนดค่าการตั้งค่า\n    hermes gateway                เริ่มเกตเวย์เชื่อมแอปแชต\n    hermes gateway install        ติดตั้งบริการเกตเวย์เบื้องหลัง\n    hermes gateway start          เริ่มบริการเกตเวย์ที่ติดตั้งไว้\n    hermes gateway stop           หยุดบริการเกตเวย์\n    hermes gateway status         ดูสถานะบริการเกตเวย์\n    hermes -p <profile> <cmd>     รันคำสั่งด้วยโปรไฟล์ที่ระบุ (หรือ --profile)\n                                  เช่น hermes -p coder gateway stop\n    hermes -s hermes-agent-dev,github-auth\n    hermes -w                     เริ่มใน Git worktree แยก\n    hermes sessions list          ดูรายการบทสนทนาเก่า\n    hermes sessions browse        เปิดตัวเลือกบทสนทนา\n    hermes sessions rename ID T   เปลี่ยนชื่อบทสนทนา\n    hermes logs                   ดู agent.log 50 บรรทัดล่าสุด\n    hermes logs -f                ติดตาม agent.log แบบต่อเนื่อง\n    hermes logs errors            ดู errors.log\n    hermes logs --since 1h        ดูบันทึกในชั่วโมงล่าสุด\n    hermes debug share            อัปโหลดรายงานวิเคราะห์เพื่อขอความช่วยเหลือ\n    hermes console                เปิดคอนโซลคำสั่งที่ปลอดภัยของ Hermes\n    hermes update                 อัปเดตเป็นรุ่นล่าสุด\n    hermes dashboard              เปิดแดชบอร์ดเว็บ (พอร์ต 9119)\n    hermes dashboard --stop       หยุดแดชบอร์ดที่ทำงานอยู่\n    hermes dashboard --status     ดูแดชบอร์ดที่ทำงานอยู่\n\nดูคำอธิบายเพิ่มเติมของแต่ละคำสั่ง:\n    hermes <command> --help\n"
+cli.setup.help.examples: "\nตัวอย่าง:\n    hermes                        เริ่มสนทนาแบบโต้ตอบ\n    hermes chat -q \"สวัสดี\"        ส่งคำถามครั้งเดียว\n    hermes --tui                  เปิดหน้าจอ Terminal แบบใหม่\n    hermes --cli                  เปิดหน้าจอ Terminal แบบคลาสสิก\n    hermes -c                     สนทนาต่อจากครั้งล่าสุด\n    hermes -c \"งานของฉัน\"          สนทนาต่อตามชื่อบทสนทนา\n    hermes --resume <session_id>  สนทนาต่อจากรหัสบทสนทนาที่ระบุ\n    hermes --resume latest        สนทนาต่อจากครั้งล่าสุด (เหมือน -c)\n    hermes --tui --resume latest --in ./dir   สนทนาต่อจากงานล่าสุดใน ./dir ด้วย TUI\n    hermes setup                  เปิดตัวช่วยตั้งค่า\n    hermes logout                 ล้างข้อมูลเข้าสู่ระบบที่บันทึกไว้\n    hermes auth add <provider>    เพิ่มข้อมูลเข้าสู่ระบบในกลุ่มบัญชี\n    hermes auth list              ดูข้อมูลเข้าสู่ระบบในกลุ่มบัญชี\n    hermes auth remove <p> <t>    นำข้อมูลเข้าสู่ระบบออกตามลำดับ รหัส หรือชื่อ\n    hermes auth reset <p> [t]     ล้างสถานะโควตาหมดของผู้ให้บริการหรือบัญชี\n    hermes auth priority <p> <t> <n>  เปลี่ยนลำดับบัญชีเป็น n (0 = ลองก่อน)\n    hermes auth refresh <p> [t]   ต่ออายุ OAuth และล้างช่วงพักบัญชี\n    hermes model                  เลือกโมเดลเริ่มต้น\n    hermes fallback [list]        ดูลำดับผู้ให้บริการสำรอง\n    hermes fallback add           เพิ่มผู้ให้บริการสำรอง\n    hermes fallback remove        นำผู้ให้บริการสำรองออก\n    hermes fallback check [--live]  ตรวจการใช้งานผู้ให้บริการสำรองแต่ละราย (คืนค่า 1 หากตรวจไม่ผ่าน)\n    hermes config                 ดูการตั้งค่า\n    hermes config edit            เปิดการตั้งค่าใน $EDITOR\n    hermes config set model gpt-4 กำหนดค่าการตั้งค่า\n    hermes gateway                เริ่มเกตเวย์เชื่อมแอปแชต\n    hermes gateway install        ติดตั้งบริการเกตเวย์เบื้องหลัง\n    hermes gateway start          เริ่มบริการเกตเวย์ที่ติดตั้งไว้\n    hermes gateway stop           หยุดบริการเกตเวย์\n    hermes gateway status         ดูสถานะบริการเกตเวย์\n    hermes -p <profile> <cmd>     รันคำสั่งด้วยโปรไฟล์ที่ระบุ (หรือ --profile)\n                                  เช่น hermes -p coder gateway stop\n    hermes -s hermes-agent-dev,github-auth\n    hermes -w                     เริ่มใน Git worktree แยก\n    hermes sessions list          ดูรายการบทสนทนาเก่า\n    hermes sessions browse        เปิดตัวเลือกบทสนทนา\n    hermes sessions rename ID T   เปลี่ยนชื่อบทสนทนา\n    hermes logs                   ดู agent.log 50 บรรทัดล่าสุด\n    hermes logs -f                ติดตาม agent.log แบบต่อเนื่อง\n    hermes logs errors            ดู errors.log\n    hermes logs --since 1h        ดูบันทึกในชั่วโมงล่าสุด\n    hermes debug share            อัปโหลดรายงานวิเคราะห์เพื่อขอความช่วยเหลือ\n    hermes console                เปิดคอนโซลคำสั่งที่ปลอดภัยของ Hermes\n    hermes update                 อัปเดตเป็นรุ่นล่าสุด\n    hermes dashboard              เปิดแดชบอร์ดเว็บ (พอร์ต 9119)\n    hermes dashboard --stop       หยุดแดชบอร์ดที่ทำงานอยู่\n    hermes dashboard --status     ดูแดชบอร์ดที่ทำงานอยู่\n\nดูคำอธิบายเพิ่มเติมของแต่ละคำสั่ง:\n    hermes <command> --help\n"
 cli.setup.help.description: "Hermes Agent — ผู้ช่วย AI ที่ใช้เครื่องมือทำงานให้คุณได้"
 cli.setup.help.command: "คำสั่งที่ต้องการรัน"
 cli.setup.help.setup: "ตัวช่วยตั้งค่าแบบโต้ตอบ"
@@ -4347,3 +4343,64 @@ cli.setup.import.not_found: "ไม่พบการตั้งค่าเอ
 cli.setup.import.usage: "นำเข้าได้ด้วยคำสั่ง: {commands}"
 cli.setup.metrics.offer_description: "สถิติที่เก็บเป็นตัวนับกิจกรรม ผลลัพธ์ ประเภทข้อผิดพลาด และสาเหตุจากรายการที่กำหนด\nเมื่อบันทึกความจำ ย่อบริบท อัปเดต หรือติดตั้งไม่สำเร็จ รวมถึงเส้นทางโมเดล\nจำนวนโทเคน การใช้ฟีเจอร์ และข้อมูลทั่วไปของเครื่อง\nไม่มีข้อความที่คุณพิมพ์ ไฟล์ พาธ ค่าที่ตั้ง หรือข้อความผิดพลาด\nเมื่ออนุญาต ระบบจะส่งสถิติให้ Nous วันละครั้ง ข้อมูลก่อนให้ความยินยอมจะไม่ถูกส่ง\nยกเว้นบันทึกการติดตั้งครั้งแรกเพียงรายการเดียว\nรายละเอียด: {url}\nเปลี่ยนการเลือกได้ทุกเมื่อด้วย hermes setup telemetry"
 cli.setup.metrics.reask: "ขอถามอีกครั้ง เนื่องจากรุ่นก่อนอาจบันทึกว่า “ไม่แบ่งปัน” ก่อนที่คุณจะเห็นคำถามนี้"
+cli.setup.power_question: "ต้องการใช้โมเดลจากแหล่งใดกับ Hermes?"
+cli.setup.power_imported: "ใช้โมเดลที่นำเข้ามา ({label}) ต่อ"
+cli.setup.power_free: "เริ่มใช้ฟรีได้ทันที โดยไม่ต้องมีบัญชีหรือ API key"
+cli.setup.power_portal: "เข้าสู่ระบบ Nous Portal เพื่อใช้กว่า 300 โมเดล พร้อมเครื่องมือเว็บ รูปภาพ และเบราว์เซอร์"
+cli.setup.power_own: "ใช้ API key หรือสมาชิกของฉัน (ChatGPT, OpenCode Go ฯลฯ)"
+cli.setup.power_alternative: "เลือกวิธีอื่นเพื่อตั้งค่าโมเดล"
+cli.setup.power_unavailable: "เครื่องนี้ยังใช้รุ่นฟรีไม่ได้"
+cli.setup.power_claimed: "รุ่นฟรีพร้อมใช้โมเดล {model} โดยไม่ต้องมีบัญชีหรือ API key"
+cli.setup.ready_model: "Hermes พร้อมแล้ว โมเดลที่ใช้คือ {name}{free}"
+cli.setup.free_suffix: " (ฟรี)"
+cli.setup.model_ready: "Hermes พร้อมแล้ว"
+cli.setup.model_missing: "ยังไม่ได้ตั้งค่าโมเดลสำหรับแชต ให้เลือกด้วยคำสั่ง hermes model"
+cli.setup.primer: "  คำสั่งอื่นที่ใช้ได้"
+cli.setup.primer_model: "เปลี่ยนโมเดลหรือผู้ให้บริการ (คีย์ส่วนตัว สมาชิก หรือโมเดลในเครื่อง)"
+cli.setup.primer_gateway: "แชตผ่าน Telegram, Discord, Slack, WhatsApp ฯลฯ"
+cli.setup.primer_tools: "เปิดหรือปิดเครื่องมือ"
+cli.setup.primer_desktop: "เปิดแอป Desktop"
+cli.setup.primer_setup: "เปิดตัวช่วยตั้งค่าฉบับเต็ม"
+cli.setup.primer_chat: "เริ่มแชตด้วยคำสั่ง"
+gateway.debug.upload_hint: "ยังไม่ได้อัปโหลด ใช้ `/debug upload` เพื่อส่งรายงานสรุป"
+gateway.debug.upload_hint_local: "ยังไม่ได้อัปโหลด ใช้ `/debug upload` เพื่อส่งรายงานสรุป หรือ `/debug local` เพื่อดูที่นี่"
+gateway.debug.nous_refused: "ยังไม่ได้อัปโหลด หากต้องการส่งให้ Nous แบบส่วนตัว ให้รัน `hermes debug share --nous` ใน Terminal หรือเลือกส่งข้อมูลวินิจฉัยใน Desktop ส่วน `/debug upload` จะเผยแพร่สรุปผ่านบริการข้อความสาธารณะ"
+gateway.reset.paused_left: "\n⚠️ บทสนทนาก่อนหน้ายังเก็บข้อความที่คุณส่งไว้ระหว่างพัก {count} ข้อความและยังไม่ได้ตอบ หากต้องการให้ทำงานต่อ ใช้ /resume {session_id} แล้วใช้ {discard}"
+gateway.context.cache_warm: "แคชพรอมป์ยังใช้ได้ถึง {until} (เหลือ {remaining} ระยะเวลา {ttl} ความเชื่อมั่น {confidence})"
+gateway.context.cache_expired: "แคชพรอมป์หมดอายุเมื่อ {ago} ที่แล้ว (ระยะเวลา {ttl} ความเชื่อมั่น {confidence}) ข้อความถัดไปจะประมวลผลพรอมป์ทั้งหมดอีกครั้ง"
+gateway.context.cache_maybe_warm: "แคชพรอมป์อาจยังใช้ได้ถึง {until} (เหลือไม่เกิน {remaining} ระยะเวลา {ttl} ความเชื่อมั่น {confidence})"
+gateway.context.cache_unknown_moved: "ไม่ทราบสถานะแคชพรอมป์ เนื่องจากเส้นทาง เซสชัน หรือบริบทเปลี่ยนไปจากคำขอที่ใช้แคชล่าสุด"
+gateway.context.cache_unknown_route: "ไม่ทราบสถานะแคชพรอมป์ ผู้ให้บริการนี้ไม่ได้เผยระยะเวลาเก็บแคช"
+gateway.context.cache_unknown_runtime: "ไม่ทราบสถานะแคชพรอมป์ เนื่องจากรันไทม์กำหนดค่าแคชเองและ Hermes อ่านค่านั้นไม่ได้"
+gateway.context.cache_unknown_storage: "ไม่ทราบสถานะแคชพรอมป์ เนื่องจากอ่านที่จัดเก็บเซสชันไม่ได้"
+gateway.context.cache_warming_off: "ปิดการรักษาแคชแล้ว หลังพลาดสองครั้ง"
+gateway.context.cache_tier_pending: "ระยะเวลาแคช 5 นาที จนกว่าจะพักเกิน 5 นาทีครั้งแรก จากนั้นจะเป็น 1 ชั่วโมง"
+gateway.context.cache_learned: "กฎที่เรียนรู้ได้คือ {rule}"
+gateway.context.cache_confidence.proven: "ตรวจยืนยันแล้ว"
+gateway.context.cache_confidence.declared: "ตามที่ระบุ"
+gateway.context.cache_confidence.assumed: "โดยประมาณ"
+gateway.update.already_running: "⏳ กำลังอัปเดตอยู่ เฉพาะผู้ที่เริ่มอัปเดตเท่านั้นที่ตอบคำถามระหว่างการอัปเดตได้ รอให้เสร็จแล้วลอง /update อีกครั้ง"
+gateway.shared.fallback_model_suffix: " — โมเดลสำรองสำหรับ `{primary}`"
+gateway.busy.setup_timeout: "⏳ การเตรียมรอบสนทนาหยุดค้างและเอเจนต์ยังไม่เริ่มทำงาน ระบบยกเลิกรอบนี้แล้ว กรุณาส่งข้อความอีกครั้ง"
+gateway.busy.setup_waiting: "⏳ ยังอยู่ระหว่างเตรียมรอบนี้ ({minutes} นาที) เอเจนต์ยังไม่เริ่มทำงาน ข้อความของคุณอยู่ในคิว ใช้ /stop เพื่อยกเลิกรอบนี้และทุกข้อความในคิว"
+gateway.moa.managed_session: "เซสชันนี้ใช้ /moa ไม่ได้ เซสชันแบบปลอดภัย แบบไม่ใช้การตั้งค่า Kanban และตัวทำงานที่มีผู้จัดการ ใช้โมเดลประจำเซสชันในทุกรอบ โปรดส่งข้อความโดยตัด /moa ออก"
+platform.shared.vault_code.title: "🔐 รหัสยืนยันสำหรับ {site}"
+platform.shared.vault_code.body: "{site} ต้องการรหัสใช้ครั้งเดียวจาก SMS หรืออีเมล กดปุ่มแล้วกรอกรหัสในแบบฟอร์ม ระบบจะส่งรหัสไปยังหน้าเว็บโดยตรงและไม่แสดงรหัสในแชตนี้"
+platform.shared.vault_code.button: "กรอกรหัส"
+platform.shared.vault_code.modal_title: "รหัสของ {site}"
+platform.shared.vault_code.input_label: "รหัสใช้ครั้งเดียว"
+platform.shared.vault_code.submitted: "ส่งรหัสแล้ว กำลังกรอกบนหน้าเว็บ"
+platform.shared.vault_code.ended: "คำขอรหัสนี้สิ้นสุดแล้ว ระบบไม่ได้กรอกรหัส"
+platform.shared.vault_code.not_author: "เฉพาะผู้เริ่มคำขอนี้เท่านั้นที่กรอกรหัสได้"
+platform.shared.vault_code.submitted_footer: "✓ ส่งรหัสแล้ว"
+platform.shared.response_as_file: "📎 คำตอบมีความยาว ดูข้อความฉบับเต็มในไฟล์แนบ"
+platform.telegram.vault_code.body: "ตอบกลับข้อความนี้ด้วยรหัส Hermes จะลบคำตอบของคุณทันทีแล้วกรอกรหัสบนหน้าเว็บ โมเดลจะไม่เห็นรหัส"
+platform.telegram.vault_code.delete_failed: "ลบข้อความตอบกลับไม่ได้ กรุณาลบข้อความที่มีรหัสด้วยตัวเอง"
+platform.telegram.prompt.multi_hint: "เลือกอย่างน้อยหนึ่งข้อแล้วแตะส่ง"
+platform.telegram.prompt.send: "✅ ส่ง"
+platform.telegram.prompt.selected_count: "เลือกแล้ว {count} ข้อ"
+platform.telegram.prompt.select_one: "กรุณาเลือกอย่างน้อยหนึ่งข้อก่อน"
+platform.telegram.prompt.toggle_failed: "อัปเดตตัวเลือกไม่ได้ กรุณาแตะอีกครั้ง"
+cli.gateway_restart.waiting: "Hermes กำลังเริ่มใหม่เพื่อให้อัปเดตหรือรีสตาร์ตเสร็จ กำลังรอให้พร้อมใช้งาน…"
+cli.gateway_restart.timed_out: "Hermes เริ่มใหม่ไม่ทันเวลาที่กำหนด ตรวจสอบด้วย `hermes gateway status` แล้วเปิด `hermes` อีกครั้ง"
+cli.gateway_restart.stopped: "หยุดรอให้ Hermes เริ่มใหม่แล้ว ยังไม่ได้เริ่มการทำงานใด"

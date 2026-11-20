@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Self-contained TUI compiler. Dependencies must already be prepared.
 import { cpSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
 import { resolve, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { frontendArgs, isMain, productOutput, publishDirectory, repoRoot, withProduct, workspaceTool } from './frontend-common.mjs'
@@ -82,7 +81,9 @@ export async function buildTui(options) {
 // The workspace's existing developer entrypoint retains ui-tui/dist without replacing
 // the source workspace (a product includes its own package.json).
 async function buildDeveloperTui() {
-  const scratch = mkdtempSync(join(tmpdir(), 'hermes-tui-'))
+  const buildRoot = join(repoRoot, '.build')
+  mkdirSync(buildRoot, { recursive: true })
+  const scratch = mkdtempSync(join(buildRoot, 'hermes-tui-'))
   try {
     const result = await buildTui({ source: repoRoot, out: join(scratch, 'tui') })
     // TMPDIR and the source checkout need not share a filesystem.

@@ -667,10 +667,9 @@ def _run_full_setup(config: dict, hermes_home, *, is_existing: bool, imported_fr
         _step("tools", t('cli.setup.tools'), lambda: setup_tools(config, first_install=not is_existing))])
 
 
-# First-time mode picker: (menu label, setup_quick runner name) — None falls through to Full Setup.
+# First-time t("cli.setup.power_question") rows after the model choices (setup_quick
+# ``first_run_power_rows``): (menu label, setup_quick runner name); None = Full Setup.
 _FIRST_TIME_MODES = (
-    ('cli.setup.quick_mode',
-     "_run_first_time_quick_setup"),
     ('cli.setup.full_mode', None),
     ('cli.setup.blank_mode', "_run_blank_slate_setup"),
 )
@@ -710,10 +709,11 @@ def _run_setup_wizard_impl(args):
         _run_setup_section(config, section)
         return
 
-    # Existing installation == a provider is configured
+    # Existing installation == a provider is configured (a claimed welcome trial counts)
+    from hermes_cli import anon_auth
     from hermes_cli.auth import get_active_provider
     is_existing = bool(get_env_value("OPENROUTER_API_KEY") or get_env_value("OPENAI_BASE_URL")
-                       or get_active_provider() is not None)
+                       or get_active_provider() is not None or anon_auth.free_inference_active())
     print_header(t("cli.setup.wizard_title"))
     _info(t("cli.setup.wizard_intro"), t("cli.setup.wizard_exit"))
     imported_from = ""
@@ -740,15 +740,20 @@ def _run_setup_wizard_impl(args):
         # outside this dict (the import from another process), so reload it.
         imported_from = offer_agent_import(hermes_home)
         config = load_config()
-        setup_mode = prompt_choice(t('cli.setup.choose_mode'), [t(label) for label, _ in _FIRST_TIME_MODES], 0)
-        label_key, runner = _FIRST_TIME_MODES[setup_mode]
-        label = t(label_key)
+        from hermes_cli import setup_quick
+        power = setup_quick.first_run_power_rows(config, imported_from)
+        labels = [label for _key, label in power] + [t(label) for label, _ in _FIRST_TIME_MODES]
+        pick = prompt_choice(t("cli.setup.power_question"), labels, 0)
+        if pick < len(power):
+            key = power[pick][0]
+            _run_setup_steps([(labels[pick], lambda: setup_quick._run_first_time_quick_setup(
+                config, hermes_home, is_existing, key))])
+            _record_setup_completed(config)
+            return
+        _, runner = _FIRST_TIME_MODES[pick - len(power)]
+        label = labels[pick]
         if runner is not None:
-            from hermes_cli import setup_quick
-            # Quick Setup offers to keep a model the import brought (Full setup acknowledges it below).
-            run_args = (config, hermes_home, is_existing) + (
-                (imported_from,) if runner == "_run_first_time_quick_setup" else ())
-            _run_setup_steps([(label, lambda: getattr(setup_quick, runner)(*run_args))])
+            _run_setup_steps([(label, lambda: getattr(setup_quick, runner)(config, hermes_home, is_existing))])
             _record_setup_completed(config)
             return
     _run_full_setup(config, hermes_home, is_existing=is_existing, imported_from=imported_from)

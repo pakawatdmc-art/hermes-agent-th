@@ -8,8 +8,7 @@ from agent import i18n, i18n_layers
 from gateway.session_authority import SessionAuthority
 from gateway.session_controls import AuthorityConnection
 from hermes_constants import get_hermes_home
-from hermes_state import SessionDB
-from hermes_state_runtime import begin_runtime_epoch
+from persistence_assembly import open_persistence, profile_scope
 
 
 @pytest.fixture
@@ -27,9 +26,9 @@ def locale_owners(tmp_path, monkeypatch):
     with ExitStack() as stack:
         owners = []
         for home in (launch, secondary):
-            db = stack.enter_context(SessionDB(db_path=home / 'state.db'))
-            authority = SessionAuthority(SimpleNamespace(), profile_id=str(home), instance_id='test', db=db,
-                                         epoch=begin_runtime_epoch(db, instance_id='test'))
+            db = stack.enter_context(open_persistence(profile_scope(home=home)))
+            authority = SessionAuthority(SimpleNamespace(), profile_id=str(home), instance_id='test', persistence=db,
+                                         epoch=db.runtime.begin_epoch(instance_id='test'))
             owners.append(authority)
         yield launch, secondary, owners
     i18n_layers._reset_registry_for_tests()

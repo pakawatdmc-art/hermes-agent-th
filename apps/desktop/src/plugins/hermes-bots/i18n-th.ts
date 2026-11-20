@@ -193,6 +193,35 @@ export const thCanonical: CanonicalGroupMessages = {
 }
 
 export const th: BotsMessages = {
+  waiting: {
+    title: 'กำลังรอเพื่อนร่วมทีม',
+    queued: 'เข้าคิวแล้ว',
+    claimed: 'รับงานแล้ว',
+    working: 'กำลังทำงาน',
+    waitingClarify: 'รอคุณตอบคำถาม',
+    waitingApproval: 'รอคุณอนุญาตหรือปฏิเสธ',
+    failed: reason => `ไม่สำเร็จ: ${reason}`,
+    reasons: {
+      provider_auth_or_access: 'ผู้ให้บริการโมเดลปฏิเสธคีย์',
+      provider_quota_limit: 'เครดิตผู้ให้บริการหมด',
+      provider_rate_limit: 'ถึงขีดจำกัดอัตราคำขอ',
+      provider_server_error: 'ติดต่อผู้ให้บริการไม่ได้',
+      missing_config: 'ยังไม่ได้ตั้งค่าโมเดล',
+      model_unavailable: 'โมเดลไม่พร้อมใช้งาน',
+      context_overflow: 'พื้นที่บริบทเต็ม',
+      runtime_offline: 'ออฟไลน์',
+      queued_expired: 'หมดเวลาก่อนรับงาน',
+      delivery_timeout: 'ส่งไม่ทันเวลา',
+      agent_blocked: 'เอเจนต์ติดปัญหา',
+      cancelled: 'ยกเลิกแล้ว',
+      unknown: 'ไม่ทราบสาเหตุ'
+    },
+    unknownOutcome: 'ยังไม่ทราบผล',
+    open: 'เปิด',
+    dismiss: 'ปิด',
+    neverResent: 'ระบบจะไม่ส่งงานซ้ำ หากยังไม่ทราบผล เพื่อนร่วมทีมอาจทำงานไปแล้ว ให้เปิดแชตก่อนสั่งอีกครั้ง',
+    stale: 'รีเฟรชไม่สำเร็จ กำลังแสดงสถานะล่าสุดที่ได้รับ'
+  },
   canonical: thCanonical,
   crossGateway: CROSS_GATEWAY_GROUP_LOCALES.th,
   editor: {
@@ -229,7 +258,7 @@ export const th: BotsMessages = {
     shareKeys: 'ใช้คีย์และบัญชีร่วมกับโปรไฟล์หลัก',
     shareKeysOn: target => `ใช้คีย์และบัญชีร่วมกับโปรไฟล์เริ่มต้นบน ${target}`,
     shareKeysHint:
-      'ใช้สิทธิ์สมาชิก บัญชี OAuth และ API key ร่วมกันโดยไม่คัดลอก จึงไม่ทำให้โทเคนของอีกฝ่ายใช้ไม่ได้เมื่อมีการรีเฟรช ยกเลิกตัวเลือกนี้เพื่อคัดลอกข้อมูลแยกไว้ ณ เวลานี้',
+      'ใช้สิทธิ์สมาชิก บัญชี OAuth และ API key ร่วมกับโปรไฟล์ default โดยไม่คัดลอก จึงไม่ทำให้โทเคนของอีกฝ่ายใช้ไม่ได้เมื่อมีการรีเฟรช',
     needsModel: 'ยังไม่มีผู้ให้บริการโมเดลพร้อมใช้งาน จึงข้ามการแนะนำตัว เลือกผู้ให้บริการและโมเดลในส่วนขั้นสูง',
     configureModel: 'ตั้งค่าโมเดล',
     createEmpty: 'สร้างแบบว่าง (ไม่ติดตั้งทักษะที่มาพร้อมระบบ)',
@@ -472,11 +501,6 @@ export const th: BotsMessages = {
     answerTo: member => `ตอบ @${member}`
   },
   tools: {
-    installHint: name => `ติดตั้ง “${name}” และเพิ่มในรายการด้านบน`,
-    installed: name => `ติดตั้งทักษะ “${name}” แล้ว`,
-    installFailed: name => `ติดตั้ง “${name}” ไม่สำเร็จ`,
-    searchHint: 'กำลังค้นหาจากชุมชนและแหล่งที่รู้จัก อาจใช้เวลาประมาณ 10 วินาที…',
-    resizeHint: 'ลากมุมเพื่อปรับขนาด',
     addServerFailed: 'เพิ่มเซิร์ฟเวอร์ไม่ได้',
     noTarget: 'ไม่มีโปรไฟล์เป้าหมาย',
     setKeyFailed: name => `ตั้งค่า ${name} ไม่สำเร็จ`,
@@ -492,9 +516,7 @@ export const th: BotsMessages = {
     setupFailed: 'ตั้งค่าไม่สำเร็จ',
     signIn: 'เข้าสู่ระบบ…',
     setUp: 'ตั้งค่า…',
-    skillsHub: 'ศูนย์รวมทักษะ Hermes',
     filterSkills: 'กรองทักษะ…',
-    searchHub: 'ค้นหาทักษะจากชุมชนและแหล่งที่รู้จัก…',
     noMcpServers: 'ไม่มีเซิร์ฟเวอร์ MCP ที่ตั้งค่าไว้หรืออยู่ในแค็ตตาล็อก'
   },
   screen: {

@@ -102,20 +102,6 @@ def _imported_model_label(config: dict) -> str:
     return f"{provider_label(provider)} · {name.strip()}"
 
 
-def _keep_imported_model(config: dict, imported_from: str) -> bool:
-    """After an import that brought a model, ask whether to keep it (the default) or switch to
-    Nous Portal; True keeps it."""
-    from hermes_cli.setup import _info, print_header, prompt_choice
-    label = _imported_model_label(config) if imported_from else ""
-    if not label:
-        return False
-    print_header(t('cli.setup.model_provider'), gap=True)
-    _info(t("cli.setup.imported_from", source=imported_from))
-    return prompt_choice(t("cli.setup.keep_imported_model", label=label), [
-        t("cli.setup.keep_model", label=label), t("cli.setup.switch_nous"),
-    ], 0, description=t("cli.setup.imported_from", source=imported_from)) == 0
-
-
 def _quick_setup_nous_portal(config: dict) -> None:
     """Quick Setup's Nous Portal step: OAuth login + model selection (provider set to "nous" by the save)."""
     from hermes_cli.setup import _info, print_header, print_info, print_warning
@@ -137,43 +123,109 @@ def _quick_setup_nous_portal(config: dict) -> None:
     _reload_config_into(config)
 
 
-def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool, imported_from: str = ""):
-    """Streamlined first-time setup via Nous Portal: OAuth, model, terminal & messaging;
-    everything else gets defaults. A model brought by an agent import (*imported_from* names the
-    agents) is offered first and kept by default, which skips the Nous Portal step."""
-    from hermes_cli.setup import (
-        _apply_default_agent_settings, _info, print_info, _print_setup_summary, print_success,
-        prompt_choice, save_config, setup_gateway, setup_terminal_backend
-    )
-    # Step 1: the imported model, or Nous Portal.
-    if not _keep_imported_model(config, imported_from):
-        _quick_setup_nous_portal(config)
+def _claim_free_tier(config: dict) -> None:
+    """"Free, start now": claim the once-per-user welcome trial (``nous/welcome``). A claim that fails
+    or is no longer available says why and offers the two sign-up routes instead."""
+    from hermes_cli import anon_auth
+    from hermes_cli.auth_constants import AuthError
+    from hermes_cli.setup import print_success, print_warning, prompt_choice
+    from hermes_cli.welcome_trial import claim_desktop_free_tier
 
-    # Step 2: Terminal Backend; Step 3: defaults for everything else.
-    setup_terminal_backend(config)
-    _apply_default_agent_settings(config)
-    save_config(config)
+    try:
+        claimed = claim_desktop_free_tier(surface="cli_setup")
+        reason = "" if claimed else t("cli.setup.power_unavailable")
+    except AuthError as exc:
+        claimed, reason = None, str(exc)
+    if claimed:
+        print_success(t("cli.setup.power_claimed", model=anon_auth.GUEST_MODEL))
+        return
+    print_warning(reason)
+    rest = [key for key, _label in _POWER_ROWS[2:]]
+    pick = prompt_choice(t("cli.setup.power_alternative"), [t(label) for _key, label in _POWER_ROWS[2:]], 0)
+    _POWER_FLOWS[rest[pick]](config)
 
-    # Step 4: Offer messaging gateway setup
+
+def _own_provider(config: dict) -> None:
+    """Any API key or subscription login (ChatGPT/Codex, OpenCode Go, Claude, …): the ``hermes model``
+    picker, the one place every provider is listed."""
+    from hermes_cli.setup import setup_model_provider
+    setup_model_provider(config)
+
+
+# First-run power choices: (key, label), in menu order. ``imported`` and ``free`` are
+# offered only when they can work (``first_run_power_rows``).
+_POWER_ROWS: tuple[tuple[str, str], ...] = (
+    ("imported", "cli.setup.power_imported"),
+    ("free", "cli.setup.power_free"),
+    ("portal", "cli.setup.power_portal"),
+    ("own", "cli.setup.power_own"),
+)
+_POWER_FLOWS = {
+    "imported": lambda config: None,
+    "free": _claim_free_tier,
+    "portal": lambda config: _quick_setup_nous_portal(config),
+    "own": _own_provider,
+}
+
+
+def first_run_power_rows(config: dict, imported_from: str = "") -> list[tuple[str, str]]:
+    """The power choices a first run can offer here: a model an agent import brought (with working
+    credentials), the free tier when this person can claim it, then the two sign-up routes."""
+    from hermes_cli.welcome_trial import claim_blocker
+
+    imported = _imported_model_label(config) if imported_from else ""
+    offered = {"imported": bool(imported), "free": claim_blocker(surface="cli_setup") is None}
+    return [(key, t(label, label=imported)) for key, label in _POWER_ROWS if offered.get(key, True)]
+
+
+_PRIMER_ROWS = (
+    ("hermes model", "cli.setup.primer_model"),
+    ("hermes setup gateway", "cli.setup.primer_gateway"),
+    ("hermes tools", "cli.setup.primer_tools"),
+    ("hermes desktop", "cli.setup.primer_desktop"),
+    ("hermes setup", "cli.setup.primer_setup"),
+)
+
+
+def _print_first_run_primer(config: dict) -> None:
+    """The end of a first run: which model Hermes will use, then one line per place to go next."""
+    from hermes_cli import anon_auth
+    from hermes_cli.auth import resolve_provider
+    from hermes_cli.auth_constants import AuthError
+    from hermes_cli.setup import Colors, color, print_success, print_warning
+
+    model = config.get("model")
+    configured = (model.get("default") if isinstance(model, dict) else model) or ""
     print()
-    gateway_choice = prompt_choice(t('cli.setup.connect_messaging'), [
-        t('cli.setup.messaging_now'), t('cli.setup.messaging_later'),
-    ], 0)
-    if gateway_choice == 0:
-        setup_gateway(config)
-        save_config(config)
-    else:
-        # Messaging is optional; service persistence still requires explicit consent.
-        from hermes_cli.gateway_setup_service import ensure_gateway_service
-        ensure_gateway_service(context="setup", interactive=True, config=config)
+    try:
+        provider = resolve_provider()
+        # On the free tier the welcome host serves only ``nous/welcome`` (``pin_model_for_route``).
+        name = anon_auth.trial_model() if provider == "nous" and anon_auth.trial_model() else configured
+        free = t("cli.setup.free_suffix") if name == anon_auth.GUEST_MODEL else ""
+        print_success(t("cli.setup.ready_model", name=name, free=free) if name else t("cli.setup.model_ready"))
+    except AuthError:
+        print_warning(t("cli.setup.model_missing"))
     print()
-    print_success(t('cli.setup.done'))
-    _info(None, t('cli.setup.all_settings_hint'))
-    if gateway_choice != 0:
-        print_info(t('cli.setup.connect_hint'))
+    print(color(t("cli.setup.primer"), Colors.CYAN, Colors.BOLD))
+    width = max(len(cmd) for cmd, _ in _PRIMER_ROWS) + 4
+    for cmd, what in _PRIMER_ROWS:
+        print(f"    {color(cmd.ljust(width), Colors.YELLOW)}{t(what)}")
     _print_macos_fda_tip()
     print()
-    _print_setup_summary(config, hermes_home)
+    print(f"  {t('cli.setup.primer_chat')}  {color('hermes', Colors.GREEN, Colors.BOLD)}")
+    print()
+
+
+def _run_first_time_quick_setup(config: dict, hermes_home, is_existing: bool, power: str = "portal"):
+    """First run after one power choice (*power*, a ``_POWER_ROWS``
+    key): set up that model, give everything else its recommended default (terminal runs locally,
+    no messaging, no service), then print where to go next."""
+    from hermes_cli.setup import _apply_default_agent_settings, save_config
+
+    _POWER_FLOWS[power](config)
+    _apply_default_agent_settings(config)
+    save_config(config)
+    _print_first_run_primer(config)
 
 
 def _print_macos_fda_tip() -> None:

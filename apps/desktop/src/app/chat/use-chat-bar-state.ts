@@ -64,7 +64,10 @@ export function useChatBarState({
     [currentModel, currentProvider, modelOptionsQuery.data]
   )
 
-  const supportsReasoning = currentModelCapabilities(modelOptionsQuery.data, currentProvider, currentModel)?.reasoning
+  const caps = currentModelCapabilities(modelOptionsQuery.data, currentProvider, currentModel)
+  const supportsReasoning = caps?.reasoning
+  const supportsFast = caps ? Boolean(caps.fast) : undefined
+  const supportsUltrafast = caps ? Boolean(caps.ultrafast) : undefined
 
   return useMemo<ChatBarState>(
     () => ({
@@ -76,7 +79,9 @@ export function useChatBarState({
         modelMenuContent,
         quickModels,
         reasoningMenuContent,
-        supportsReasoning
+        supportsFast,
+        supportsReasoning,
+        supportsUltrafast
       },
       tools: {
         enabled: true,
@@ -97,7 +102,9 @@ export function useChatBarState({
       modelMenuContent,
       quickModels,
       reasoningMenuContent,
-      supportsReasoning
+      supportsFast,
+      supportsReasoning,
+      supportsUltrafast
     ]
   )
 }

@@ -39,7 +39,7 @@
 ```bash
 ./dev pnpm --filter hermes-tui run build:ink
 ./dev test tests/agent/test_i18n_thai.py tests/agent/test_i18n_tui_packs.py tests/gateway/test_session_i18n.py tests/tui_gateway/contracts/test_generated.py
-./dev test tests/hermes_cli/test_thai_defaults.py tests/hermes_cli/test_setup_thai.py tests/hermes_cli/test_auth_thai.py tests/hermes_state/test_search_thai_substrings.py tests/tools/test_thai_file_workflow.py
+./dev test tests/hermes_cli/test_thai_defaults.py tests/hermes_cli/test_setup_thai.py tests/hermes_cli/test_auth_thai.py tests/persistence_sqlite/core/test_search_thai_substrings.py tests/tools/test_thai_file_workflow.py
 ./dev pnpm --filter hermes exec vitest run src/i18n/thai.test.tsx src/i18n/catalog-completeness.test.ts src/i18n/overlay-completeness.test.ts --maxWorkers=2
 ./dev pnpm --filter hermes exec vitest run src/i18n/edition-default.test.tsx src/lib/time-context.test.tsx src/lib/time-locale.test.ts src/components/desktop-install-thai.test.tsx src/app/chat/composer/hooks/use-composer-placeholder.test.tsx --maxWorkers=2
 ./dev pnpm --filter hermes-tui exec vitest run src/__tests__/i18nThai.test.ts src/__tests__/textInputThai.test.tsx --maxWorkers=2

@@ -1,3 +1,4 @@
+import { thBackupTransfer } from './th_backup_transfer'
 // Thai settings copy reviewed against the English catalog.
 import { TH_FIELD_DESCRIPTIONS, TH_FIELD_LABELS } from './th_field_copy'
 import { thGatewayHost } from './th_gateway_host'
@@ -89,6 +90,8 @@ export const thSettingsCopy = {
       keysTools: 'เครื่องมือ',
       keysSettings: 'การตั้งค่า',
       mcp: 'MCP',
+      backup: 'สำรองและย้ายข้อมูล',
+      backupOnly: 'สำรองข้อมูล',
       archivedChats: 'แชตที่เก็บถาวร',
       sessions: 'บทสนทนา',
       about: 'เกี่ยวกับ',
@@ -439,6 +442,7 @@ export const thSettingsCopy = {
     },
     fieldLabels: TH_FIELD_LABELS,
     fieldDescriptions: TH_FIELD_DESCRIPTIONS,
+    backup: thBackupTransfer,
     uninstallSection: thUninstallSection,
     memoryLayers: thMemoryLayers,
     customEndpoints: {
@@ -528,6 +532,9 @@ export const thSettingsCopy = {
       attachmentSizeUnit: 'MB',
       attachmentSizeLabel: 'ขนาดไฟล์สูงสุดสำหรับดูตัวอย่างหรือแนบภาพ หน่วยเมกะไบต์',
       voiceShortcutHintTitle: 'ทางลัดการบันทึกเสียง',
+      desktopReadAloudTitle: 'อ่านคำตอบออกเสียงในแอปนี้',
+      desktopReadAloudDesc:
+        'อ่านคำตอบแต่ละรายการเมื่อเขียนเสร็จ ใช้สวิตช์เดียวกับปุ่มในช่องแชตและมีผลกับทุกหน้าต่าง เมื่อปิด เสียงจะหยุดทันที ส่วนตัวเลือกอ่านคำตอบด้านล่างใช้กับแอปแชตและ CLI',
       voiceShortcutHintDesc:
         'ตั้งค่าทางลัดการบันทึกเสียงในการตั้งค่า \u2192 แป้นพิมพ์ลัด ("เริ่ม / หยุดการสนทนาด้วยเสียง") ค่ากำหนด voice.record_key ใช้กับ CLI และ TUI เท่านั้น',
       showOptions: 'แสดงตัวเลือก'
